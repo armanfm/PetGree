@@ -1,0 +1,3 @@
+[console_scripts]
+myth = mythril.interfaces.cli:main
+
