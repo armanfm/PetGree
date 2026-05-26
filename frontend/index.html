@@ -1,0 +1,1418 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<title>PetgreeChain</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/ethers@6.13.5/dist/ethers.umd.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --bg:#faf9f6;--panel:#fff;--muted:#f0ede7;--green:#1b3a2d;--green2:#2d6a4f;
+  --mint:#e8f5ee;--mint-b:#b7dfc9;--amber:#c96a00;--amber-bg:#fff4df;
+  --red:#b83a2e;--red-bg:#fdecea;--text:#1c1917;--soft:#6f6760;--line:#e7e2da;
+  --shadow:0 1px 3px rgba(0,0,0,.06),0 8px 22px rgba(0,0,0,.06);--r:10px
+}
+body{font-family:"DM Sans",sans-serif;background:var(--bg);color:var(--text);min-height:100vh;padding-bottom:54px}
+h1,h2,h3{font-family:"Playfair Display",serif}
+button,input,select,textarea{font:inherit}
+nav{height:62px;background:var(--green);display:flex;align-items:center;padding:0 26px;gap:18px;position:sticky;top:0;z-index:50}
+.logo{font-family:"Playfair Display",serif;color:white;font-size:21px;font-weight:700;margin-right:auto}.logo span{color:#8dd7aa}
+.nav-tab{border:0;background:transparent;color:rgba(255,255,255,.65);padding:8px 13px;border-radius:8px;font-weight:700;cursor:pointer}.nav-tab.active,.nav-tab:hover{background:rgba(255,255,255,.14);color:white}
+.wallet{font:12px monospace;color:rgba(255,255,255,.7);background:rgba(255,255,255,.1);padding:6px 9px;border-radius:7px}
+.page{display:none;max-width:1120px;margin:0 auto;padding:28px}.page.active{display:block}
+.head{display:flex;align-items:flex-end;justify-content:space-between;gap:16px;margin-bottom:20px}.title{font-size:27px}.sub{font-size:14px;color:var(--soft);margin-top:4px}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.btn{border:0;border-radius:9px;background:var(--green);color:white;padding:10px 14px;font-weight:800;cursor:pointer;transition:.15s}.btn:hover{background:var(--green2)}.btn.secondary{background:white;color:var(--green);border:1px solid var(--mint-b)}.btn.danger{background:var(--red)}.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.sm{padding:7px 11px;font-size:13px}
+.notice{background:var(--amber-bg);border:1px solid #f5c97a;color:#6f3d00;border-radius:var(--r);padding:12px 14px;font-size:14px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}.cols{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.panel,.card,.history{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow)}
+.panel{padding:18px}.panel h3{font-size:19px;margin-bottom:12px}
+.field{display:grid;gap:6px;margin-bottom:12px}.field label{font-size:12px;font-weight:800;color:var(--soft);text-transform:uppercase}
+.field input,.field select,.field textarea{width:100%;border:1px solid var(--line);border-radius:8px;background:white;padding:10px 11px;color:var(--text)}.field textarea{min-height:86px;resize:vertical}
+.card{padding:18px;transition:.18s}.card.click{cursor:pointer}.card.click:hover{transform:translateY(-2px);border-color:var(--mint-b)}
+.avatar{width:50px;height:50px;border-radius:50%;display:grid;place-items:center;background:var(--mint);font-size:20px;font-weight:900;color:var(--green);margin-bottom:12px}
+.pet-photo{width:100%;aspect-ratio:4/3;border-radius:8px;object-fit:cover;background:var(--mint);border:1px solid var(--line);margin-bottom:12px}
+.photo-head{display:grid;grid-template-columns:150px 1fr;gap:18px;align-items:start}.photo-head img{width:150px;aspect-ratio:1;border-radius:8px;object-fit:cover;background:var(--mint);border:1px solid var(--line)}
+.photo-actions{margin-top:12px;display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.photo-actions input{max-width:280px}
+.brand-hero{display:grid;place-items:center;text-align:center;margin:4px 0 24px;padding:18px 0}
+.brand-mark{display:flex;align-items:center;justify-content:center;gap:22px;flex-wrap:wrap}
+.brand-icon{width:118px;height:118px;display:block}.brand-name{font-family:"Playfair Display",serif;font-size:60px;line-height:1;font-weight:700;color:var(--green)}.brand-name span{color:#77c79c}
+.brand-tag{display:flex;align-items:center;gap:14px;margin-top:10px;color:var(--green);font-family:"Playfair Display",serif;font-size:21px;font-weight:700}.brand-tag:before,.brand-tag:after{content:"";width:70px;height:3px;background:var(--mint-b);border-radius:999px}
+.home-top{display:flex;justify-content:space-between;align-items:flex-end;gap:16px;margin:0 0 14px}
+.home-pets{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:16px;align-items:stretch}
+.featured-pet,.mini-pet{background:white;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden;cursor:pointer;transition:.16s}
+.featured-pet:hover,.mini-pet:hover{transform:translateY(-2px);border-color:var(--mint-b)}
+.featured-pet,.mini-pet{display:block;min-height:0}
+.featured-pet img,.featured-empty,.mini-pet img,.mini-empty{width:100%;height:220px;aspect-ratio:auto;display:grid;place-items:center;object-fit:cover;object-position:center;background:var(--mint);color:var(--green);font-size:42px;font-weight:900}
+.featured-body,.mini-body{padding:16px;min-width:0}.featured-body .name,.mini-body .name{font-size:23px}
+.mini-stack{display:contents}
+.home-empty{background:white;border:1px dashed var(--line);border-radius:var(--r);padding:24px;text-align:center;color:var(--soft);grid-column:1/-1}
+.name{font-family:"Playfair Display",serif;font-size:22px;font-weight:700}.meta{font-size:13px;color:var(--soft);margin-top:3px}
+.badges{display:flex;flex-wrap:wrap;gap:7px;margin-top:12px}.badge{font-size:12px;font-weight:800;border-radius:999px;padding:4px 9px}
+.ok{background:var(--mint);color:var(--green2);border:1px solid var(--mint-b)}.warn{background:var(--amber-bg);color:var(--amber);border:1px solid #f5c97a}.dead{background:var(--red-bg);color:var(--red)}
+.mono{font:12px monospace;color:var(--soft);margin-top:12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 9px;overflow-wrap:anywhere}
+.empty{border:1px dashed var(--line);border-radius:var(--r);padding:20px;background:white;color:var(--soft);font-size:14px;text-align:center}
+.back{border:0;background:transparent;color:var(--soft);font-weight:800;margin-bottom:16px;cursor:pointer}
+.detail{background:white;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:22px;margin-bottom:16px;border-top:5px solid var(--green2)}
+.facts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.fact{background:var(--bg);border-radius:8px;padding:11px}.fact small{display:block;color:var(--soft);font-size:11px;text-transform:uppercase}.fact b{display:block;margin-top:3px;overflow-wrap:anywhere}
+.history{padding:18px;margin-bottom:16px}.history h3{font-size:18px;margin-bottom:12px}.item{display:flex;gap:13px;padding:14px 0;border-top:1px solid var(--line)}.item:first-of-type{border-top:0}
+.dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;font-weight:900}.dot.green{background:var(--mint);color:var(--green)}.dot.amber{background:var(--amber-bg);color:var(--amber)}.dot.red{background:var(--red-bg);color:var(--red)}
+.item-title{font-weight:900}.item-line{font-size:13px;color:var(--soft);margin-top:3px}.public{margin-top:8px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:13px;line-height:1.45}
+.status-tag{display:inline-block;font-size:11px;font-weight:800;border-radius:999px;padding:2px 8px;margin-left:6px}
+.status-tag.aberta{background:var(--amber-bg);color:var(--amber);border:1px solid #f5c97a}.status-tag.finalizada{background:var(--mint);color:var(--green2);border:1px solid var(--mint-b)}
+.vaccine-card{margin-top:8px;border:1px solid var(--line);border-left:5px solid var(--line);border-radius:8px;padding:10px 12px;background:var(--bg);font-size:13px;line-height:1.45}
+.vaccine-card.vac-ok{background:#eef8f2;border-color:var(--mint-b);border-left-color:var(--green2)}
+.vaccine-card.vac-warn{background:var(--amber-bg);border-color:#f5c97a;border-left-color:var(--amber)}
+.vaccine-card.vac-bad{background:var(--red-bg);border-color:#efb9b2;border-left-color:var(--red)}
+.vaccine-card.vac-none{background:var(--bg);border-left-color:var(--soft)}
+.vaccine-head{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:5px}
+.vaccine-name{font-weight:900;color:var(--text)}
+.vaccine-badge{font-size:10px;font-weight:900;border-radius:999px;padding:3px 8px;white-space:nowrap}
+.vac-ok .vaccine-badge{background:var(--mint);color:var(--green2);border:1px solid var(--mint-b)}
+.vac-warn .vaccine-badge{background:#ffe2ac;color:var(--amber);border:1px solid #f5c97a}
+.vac-bad .vaccine-badge{background:#ffd4ce;color:var(--red);border:1px solid #efb9b2}
+.vac-none .vaccine-badge{background:var(--muted);color:var(--soft);border:1px solid var(--line)}
+.vaccine-detail{color:var(--soft)}
+.vaccine-alert{font-weight:900;margin-top:5px}
+.vac-ok .vaccine-alert{color:var(--green2)}
+.vac-warn .vaccine-alert{color:var(--amber)}
+.vac-bad .vaccine-alert{color:var(--red)}
+.preco-ref{margin-top:6px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-size:13px}.preco-ref .eth{font-weight:700;color:var(--text)}.preco-ref .brl{color:var(--green2);font-weight:800;margin-left:6px}
+.memorial{background:linear-gradient(135deg,var(--green),var(--green2));color:white;border-radius:var(--r);padding:22px;margin-bottom:16px}.memorial h3{font-size:21px;margin-bottom:10px}.memorial p{line-height:1.7;color:rgba(255,255,255,.88)}.memorial small{display:block;margin-top:13px;color:rgba(255,255,255,.58);font-family:monospace;overflow-wrap:anywhere}
+.vetrow{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:.15s;cursor:pointer}
+.vetrow:hover{border-color:var(--mint-b);transform:translateY(-1px)}
+.vetrow.sel{border-color:var(--green2);box-shadow:var(--shadow);border-left-width:4px}
+.vethead{display:flex;align-items:center;gap:13px;padding:13px 15px}
+.vetav{width:42px;height:42px;border-radius:50%;background:var(--mint);display:grid;place-items:center;font-weight:900;color:var(--green);flex:0 0 auto;font-size:16px}
+.vetinfo{flex:1;min-width:0}
+.vetname{font-weight:800;font-size:15px}.vetname .st{font-size:11px;font-weight:800;border-radius:999px;padding:2px 7px;margin-left:6px}.st.a{background:var(--mint);color:var(--green2)}.st.i{background:var(--red-bg);color:var(--red)}
+.vetsub{font-size:12px;color:var(--soft);margin-top:3px;line-height:1.5}
+.vetprice{font-weight:800;color:var(--green2);font-size:14px;white-space:nowrap;flex:0 0 auto;text-align:right}.vetprice small{display:block;color:var(--soft);font-weight:600;font-size:11px}
+.vetdetail{background:var(--panel);border:1px solid var(--mint-b);border-top:4px solid var(--green2);border-radius:var(--r);box-shadow:var(--shadow);padding:18px;margin-top:14px}
+.vetdetail .dt-name{font-family:"Playfair Display",serif;font-size:22px;font-weight:700}
+.vetdetail .det{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;margin:14px 0}
+.vetdetail .det div{background:var(--bg);border-radius:8px;padding:9px 11px;font-size:13px}
+.vetdetail .det small{display:block;color:var(--soft);font-size:10px;text-transform:uppercase;font-weight:800;margin-bottom:2px}
+.vetdetail .det b{overflow-wrap:anywhere}
+.subtabs{display:flex;gap:6px;margin-bottom:18px;background:var(--muted);padding:6px;border-radius:var(--r);width:fit-content;flex-wrap:wrap}
+.subtab{padding:8px 18px;border-radius:8px;cursor:pointer;font-size:14px;font-weight:800;color:var(--soft);border:0;background:transparent}.subtab.on{background:var(--green);color:white}
+.subpanel{display:none}.subpanel.on{display:block}
+#toasts{position:fixed;top:74px;right:18px;display:flex;flex-direction:column;gap:8px;z-index:300}
+.toast{background:white;border:1px solid var(--line);border-left-width:4px;border-radius:10px;padding:11px 15px;font-size:13px;max-width:340px;box-shadow:var(--shadow);animation:slidein .25s}
+.toast.s{border-left-color:var(--green2)}.toast.e{border-left-color:var(--red)}.toast.p{border-left-color:var(--amber)}.toast.i{border-left-color:var(--green)}
+.toast .tt{font-weight:800;text-transform:uppercase;font-size:11px;margin-bottom:2px;color:var(--soft)}
+@keyframes slidein{from{opacity:0;transform:translateX(28px)}to{opacity:1}}
+#logbar{position:fixed;bottom:0;left:0;right:0;background:var(--green);color:white;padding:8px 20px;display:flex;align-items:center;gap:12px;z-index:200;min-height:42px}
+#logbar .ll{font-size:11px;text-transform:uppercase;font-weight:800;color:rgba(255,255,255,.6);white-space:nowrap}
+#logmsgs{flex:1;display:flex;gap:8px;overflow-x:auto;scrollbar-width:none}#logmsgs::-webkit-scrollbar{display:none}
+.le{font-size:12px;white-space:nowrap;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,.12)}
+.le.s{background:rgba(141,215,170,.25);color:#cdEFD9}.le.e{background:rgba(184,58,46,.4);color:#ffd9d4}.le.p{background:rgba(201,106,0,.3);color:#ffe0b8}
+@media(max-width:1000px){.home-pets{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:820px){nav{padding:0 12px;gap:6px}.logo{font-size:18px}.wallet{display:none}.page{padding:18px}.grid,.cols,.facts,.home-pets{grid-template-columns:1fr}.head,.home-top{align-items:flex-start;flex-direction:column}.brand-name{font-size:38px}.brand-icon{width:88px;height:88px}.brand-tag{font-size:16px}.brand-tag:before,.brand-tag:after{width:34px}.featured-pet img,.featured-empty,.mini-pet img,.mini-empty{height:210px}#toasts{left:12px;right:12px;top:70px}.toast{max-width:none}}
+@media(max-width:820px){.photo-head{grid-template-columns:1fr}.photo-head img{width:100%;max-width:220px}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">Petgree<span>Chain</span></div>
+  <button class="nav-tab active" onclick="showPage('dashboard',this)">Inicio</button>
+  <button class="nav-tab" onclick="showPage('pets',this)">Pets</button>
+  <button class="nav-tab" onclick="showPage('vets',this)">Vets</button>
+  <button class="nav-tab" onclick="showPage('settings',this)">Contratos</button>
+  <div id="walletLabel" class="wallet">Carteira desconectada</div>
+</nav>
+
+<div id="toasts"></div>
+
+<main id="dashboard" class="page active">
+  <div class="brand-hero">
+    <div class="brand-mark">
+      <svg class="brand-icon" viewBox="0 0 120 120" aria-hidden="true">
+        <path d="M60 9 101 25v31c0 27-17 45-41 55-24-10-41-28-41-55V25L60 9Z" fill="none" stroke="#1b3a2d" stroke-width="7" stroke-linejoin="round"/>
+        <circle cx="45" cy="45" r="9" fill="#1b3a2d"/><circle cx="60" cy="38" r="10" fill="#1b3a2d"/><circle cx="75" cy="45" r="9" fill="#1b3a2d"/><circle cx="39" cy="61" r="8" fill="#1b3a2d"/><circle cx="81" cy="61" r="8" fill="#1b3a2d"/>
+        <path d="M43 78c5-15 29-15 34 0 2 7-3 12-10 10-4-1-10-1-14 0-7 2-12-3-10-10Z" fill="#1b3a2d"/>
+        <path d="M60 65v17M51.5 73.5h17" stroke="#fff" stroke-width="6" stroke-linecap="round"/>
+        <path d="M35 100h24c8 0 8-13 0-13H42M61 100h17c8 0 8-13 0-13H61" fill="none" stroke="#77c79c" stroke-width="6" stroke-linecap="round"/>
+      </svg>
+      <div>
+        <div class="brand-name">Petgree<span>Chain</span></div>
+        <div class="brand-tag">Identidade de saude animal on-chain</div>
+      </div>
+    </div>
+  </div>
+  <div class="head">
+    <div><h1 class="title">Meus pets</h1><p class="sub">Fotos vinculadas ao contrato do animal e historico publico verificavel.</p></div>
+    <div class="row"><button class="btn" onclick="connect()">Conectar carteira</button><button class="btn secondary" onclick="reloadAll()">Atualizar</button></div>
+  </div>
+  <div id="setupNotice" class="notice" style="display:none"></div>
+  <section class="home-pets" id="homePets">
+    <div class="home-empty">Conecte a carteira e configure os contratos para ver as identidades dos pets.</div>
+  </section>
+  <div id="summary" style="display:none"></div>
+  <div id="cotacaoBox" style="display:none"></div>
+</main>
+
+<main id="pets" class="page">
+  <div id="petsListView">
+    <div class="head">
+      <div><h2 class="title">Meus Pets</h2><p class="sub">Lista carregada de PetFactory.getPetsByOwner.</p></div>
+      <button class="btn" onclick="reloadPets()">Atualizar pets</button>
+    </div>
+    <section class="cols">
+      <div class="panel">
+        <h3>Registrar pet</h3>
+        <div class="field"><label>Nome</label><input id="petName" autocomplete="off"></div>
+        <div class="field"><label>Raca ou endereco do contrato anterior</label><input id="petBreed" autocomplete="off" placeholder="Ex: Golden Retriever ou 0x..."></div>
+        <div class="field"><label>Data de nascimento</label><input id="petBirth" type="date"></div>
+        <div class="field"><label>Contrato do pai - opcional</label><input id="petFather" autocomplete="off" placeholder="0x... ou vazio"></div>
+        <div class="field"><label>Contrato da mae - opcional</label><input id="petMother" autocomplete="off" placeholder="0x... ou vazio"></div>
+        <div class="field"><label>Foto do pet - opcional</label><input id="petPhoto" type="file" accept="image/*"></div>
+        <button class="btn" onclick="registerPet()">Registrar na blockchain</button>
+      </div>
+      <div>
+        <div class="panel" style="margin-bottom:16px;border-top:4px solid var(--green2)">
+          <h3>Buscar pet pelo contrato</h3>
+          <p style="font-size:13px;color:var(--soft);margin-bottom:10px">Cole o endereco do contrato de um pet para ver o historico publico.</p>
+          <div class="field"><label>Endereco do contrato do pet</label><input id="petLookupAddr" autocomplete="off" placeholder="0x..."></div>
+          <button class="btn" onclick="lookupPet()">Buscar pet</button>
+        </div>
+        <div id="petsGrid" class="grid"></div>
+      </div>
+    </section>
+  </div>
+  <section id="petDetailView" style="display:none">
+    <button class="back" onclick="hidePet()">← Voltar</button>
+    <div id="petDetail"></div>
+  </section>
+</main>
+
+<main id="vets" class="page">
+  <div class="head">
+    <div><h2 class="title">Veterinarios</h2><p class="sub">Cadastro, listagem, busca por NFT e administracao.</p></div>
+    <button class="btn" onclick="reloadVets()">Atualizar</button>
+  </div>
+
+  <div class="subtabs">
+    <button class="subtab on" onclick="subtab('vet',this)">Sou veterinario</button>
+    <button class="subtab" onclick="subtab('busca',this)">Buscar vets</button>
+    <button class="subtab" onclick="subtab('admin',this)">Administracao</button>
+  </div>
+
+  <section id="sub-vet" class="subpanel on">
+    <div class="panel">
+      <h3>Meu cadastro veterinario</h3>
+      <div id="meuPerfilVet" class="notice" style="display:none"></div>
+      <div class="field"><label>Nome profissional</label><input id="vetName"></div>
+      <div class="field"><label>CRMV</label><input id="vetCrmv"></div>
+      <div class="field"><label>Cidade</label><input id="vetCidade"></div>
+      <div class="field"><label>Bairro de atendimento</label><input id="vetBairro"></div>
+      <div class="field"><label>Telefone publico</label><input id="vetTelefone"></div>
+      <button class="btn" onclick="registerVetRequest()">Solicitar cadastro</button>
+      <p style="font-size:12px;color:var(--soft);margin-top:8px">Apos solicitar, aguarde a aprovacao do administrador para o NFT ser mintado.</p>
+      <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+
+      <h3 style="font-size:16px">Atualizar telefone</h3>
+      <p style="font-size:13px;color:var(--soft);margin-bottom:10px">Use se seu WhatsApp, telefone comercial ou canal publico mudar.</p>
+      <div class="field"><label>Novo telefone publico</label><input id="vetPhoneUpdate" autocomplete="off" placeholder="Ex: (81) 99999-9999"></div>
+      <button class="btn secondary" onclick="updateVetPhone()">Atualizar telefone</button>
+
+      <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
+      <p style="font-size:13px;color:var(--soft);margin-bottom:8px">Precos de referencia - exibidos no prontuario, pagamento presencial.</p>
+      <p id="cotacaoLabel" style="font-size:12px;color:var(--green2);font-weight:700;margin-bottom:12px">Carregando cotacao ETH/BRL...</p>
+      <div class="field"><label>Preco da consulta em R$</label><input id="consultaPrice" inputmode="decimal" placeholder="Ex: 150,00"></div>
+      <div class="field"><label>Preco da diaria de internacao em R$</label><input id="diariaPrice" inputmode="decimal" placeholder="Ex: 80,00"></div>
+      <button class="btn" onclick="setVetPrices()">Salvar precos</button>
+    </div>
+  </section>
+
+  <section id="sub-busca" class="subpanel">
+    <div class="cols">
+      <div class="panel">
+        <h3>Lista de veterinarios</h3>
+        <p style="font-size:13px;color:var(--soft);margin-bottom:12px">Todos os vets ativos. Filtre por cidade e depois por bairro.</p>
+        <div class="field"><label>Cidade</label><input id="vetSearchCidade" oninput="renderVetSearch()" placeholder="Ex: Paulista"></div>
+        <div class="field"><label>Bairro</label><input id="vetSearchBairro" oninput="renderVetSearch()" placeholder="Ex: Janga"></div>
+        <button class="btn secondary" onclick="reloadVets()">Recarregar lista</button>
+        <div id="vetList" style="margin-top:14px"></div>
+        <div id="vetDetailPanel"></div>
+      </div>
+      <div class="panel">
+        <h3>Buscar pelo NFT</h3>
+        <p style="font-size:13px;color:var(--soft);margin-bottom:12px">Digite o tokenId do NFT para ver o cadastro individual.</p>
+        <div class="field"><label>tokenId</label><input id="tokenIdSearch" type="number" min="1" placeholder="Ex: 1"></div>
+        <button class="btn" onclick="searchByTokenId()">Buscar por NFT</button>
+        <div id="tokenIdResult" style="margin-top:14px"></div>
+      </div>
+    </div>
+  </section>
+
+  <section id="sub-admin" class="subpanel">
+    <div class="panel" style="border-top:4px solid var(--amber)">
+      <div class="head" style="margin-bottom:14px">
+        <div><h3 style="margin:0">Administracao - aprovar e revogar</h3></div>
+        <button class="btn secondary sm" onclick="loadAdminPanel()">↻ Atualizar</button>
+      </div>
+      <div id="adminOwnerNote" class="notice">Carregando permissoes...</div>
+      <h3 style="font-size:16px;margin:18px 0 10px">Solicitacoes pendentes</h3>
+      <div id="pendingList"><div class="empty">Carregando...</div></div>
+      <h3 style="font-size:16px;margin:22px 0 10px">Todos os veterinarios</h3>
+      <div id="mintedList"><div class="empty">Carregando...</div></div>
+    </div>
+  </section>
+</main>
+
+<main id="settings" class="page">
+  <div class="head"><div><h2 class="title">Contratos</h2><p class="sub">Use os enderecos reais depois do deploy. Ficam salvos neste navegador.</p></div></div>
+  <section class="panel">
+    <div class="field"><label>PetFactory</label><input id="factoryAddress"></div>
+    <div class="field"><label>VetNFT</label><input id="vetNFTAddress"></div>
+    <div class="field"><label>VetGovernance - opcional, nao usado no fluxo padrao</label><input id="governanceAddress"></div>
+    <button class="btn" onclick="saveConfig()">Salvar e verificar contratos</button>
+    <div id="contractStatus" style="margin-top:14px"></div>
+  </section>
+</main>
+
+<div id="logbar"><span class="ll">Status</span><div id="logmsgs"><span class="le">Aguardando conexao...</span></div></div>
+
+<script>
+"use strict";
+
+const ZERO = "0x0000000000000000000000000000000000000000";
+const TYPE_NAMES = ["Consulta","Vacinacao","Internacao"];
+const SUPABASE_URL = "https://mnmflnqmohgsxgavwenn.supabase.co";
+const SUPABASE_PUBLISHABLE_KEY = "sb_publishable_va4nLJ-Uzw2KzYzdOel-hQ_Toeddk-1";
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_PUBLISHABLE_KEY);
+
+const FACTORY_ABI = [
+  "function registerPet(string nome, string raca, uint256 dataNascimento, address pai, address mae) returns (address)",
+  "function getPetsByOwner(address owner) view returns (address[])",
+  "function totalPets() view returns (uint256)",
+  "function isPetRegistered(address petAddress) view returns (bool)",
+  "event PetRegistrado(address indexed dono, address indexed petContract, string nome, string raca, address pai, address mae)"
+];
+
+const PET_ABI = [
+  "function nome() view returns (string)",
+  "function raca() view returns (string)",
+  "function dono() view returns (address)",
+  "function dataNascimento() view returns (uint256)",
+  "function pai() view returns (address)",
+  "function mae() view returns (address)",
+  "function falecido() view returns (bool)",
+  "function getConsultas() view returns (tuple(uint256 id, uint8 tipo, address vet, string registroPublico, uint256 preco, uint256 diasInternacao, uint256 data, uint8 status)[])",
+  "function getAtestados() view returns (tuple(address vet, string conteudo, uint256 data)[])",
+  "function getMemorial() view returns (tuple(string historia, uint256 dataObito, uint256 dataRegistro))",
+  "function openConsultation(address vetAddress, uint8 tipo, uint256 diasInternacao)",
+  "function addRecord(uint256 consultaId, string conteudo)",
+  "function finalizeConsultation(uint256 consultaId)",
+  "function issueAtestado(string conteudo)",
+  "function markAsDeceased(string historia, uint256 dataObito)",
+  "function converterParaReais(uint256 weiAmount) view returns (uint256 reais, uint256 centavos)",
+  "function getPrecoConsultaEmReais(uint256 consultaId) view returns (uint256 reais, uint256 centavos)"
+];
+
+const VET_ABI = [
+  "function registerVet(string nome, string crmv, string cidade, string bairro, string telefone)",
+  "function approveVet(address vetAddress)",
+  "function deactivateVet(address vetAddress)",
+  "function setPrices(uint256 consultaPrice, uint256 diariaInternacaoPrice)",
+  "function atualizarTelefone(string novoTelefone)",
+  "function isVetActive(address vetAddress) view returns (bool)",
+  "function hasNFT(address vetAddress) view returns (bool)",
+  "function owner() view returns (address)",
+  "function ownerOf(uint256 tokenId) view returns (address)",
+  "function getVet(address vetAddress) view returns (tuple(string nome, string crmv, string cidade, string bairro, string telefone, uint256 consultaPrice, uint256 diariaInternacaoPrice, bool ativo, uint256 tokenId))",
+  "function getVetPrice(address vetAddress, uint8 tipo, uint256 diasInternacao) view returns (uint256)",
+  "function getAllVets() view returns (address[])",
+  "event VetSolicitado(address indexed vet, string crmv, string cidade, string bairro, string telefone)"
+];
+
+let provider, signer, account;
+let config = JSON.parse(localStorage.getItem("petgree.config") || "{}");
+let allVets = [];
+let selectedVet = localStorage.getItem("petgree.selectedVet") || "";
+let currentPetAddr = "";
+let ethBrl = 0;
+let vetOwner = "";
+let isOwner = false;
+let shownVets = {};
+
+function shortAddr(a){ return (!a||a===ZERO) ? "-" : a.slice(0,6)+"..."+a.slice(-4) }
+function toEth(v){ return ethers.formatEther(v) }
+function validAddress(v){ try{ return ethers.isAddress(v) }catch{ return false } }
+function cleanAddress(v){ return (v && validAddress(v)) ? v : ZERO }
+function dateFromTs(ts){ const n=Number(ts); return n ? new Date(n*1000).toLocaleDateString("pt-BR") : "" }
+function escapeHtml(v){ return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m])) }
+function eqAddr(a,b){ return a && b && a.toLowerCase()===b.toLowerCase() }
+function photoKey(addr){ return String(addr || "").toLowerCase(); }
+
+function localDateFromYmd(ymd){
+  const parts = String(ymd || "").split("-").map(Number);
+  if(parts.length !== 3 || parts.some(n => !Number.isFinite(n))) return null;
+  return new Date(parts[0], parts[1] - 1, parts[2]);
+}
+function formatYmd(ymd){
+  const d = localDateFromYmd(ymd);
+  return d ? d.toLocaleDateString("pt-BR") : "";
+}
+function vaccineStatus(nextDose){
+  const due = localDateFromYmd(nextDose);
+  if(!due) return { cls:"vac-none", badge:"SEM DATA", text:"Sem proxima dose informada." };
+  const today = new Date();
+  today.setHours(0,0,0,0);
+  due.setHours(0,0,0,0);
+  const diff = Math.round((due - today) / 86400000);
+  if(diff >= 0){
+    return { cls:"vac-ok", badge:"EM DIA", text: diff === 0 ? "Vence hoje." : "Em dia por mais " + diff + " dia(s)." };
+  }
+  const atraso = Math.abs(diff);
+  if(atraso <= 30) return { cls:"vac-warn", badge:"VENCIDA", text:"Vencida ha " + atraso + " dia(s)." };
+  return { cls:"vac-bad", badge:"VENCIDA +30", text:"Vencida ha " + atraso + " dia(s)." };
+}
+async function saveVaccineAlert(petAddr, consultaId, vaccineName, nextDose){
+  try{
+    const { error } = await supabaseClient.from("vaccine_alerts").upsert({
+      pet_contract: photoKey(petAddr),
+      consulta_id: String(consultaId),
+      vaccine_name: vaccineName,
+      next_dose: nextDose,
+      vet_wallet: photoKey(account),
+      updated_at: new Date().toISOString()
+    }, { onConflict: "pet_contract,consulta_id" });
+    if(error) throw error;
+    toast("Alerta salvo", "Proxima dose salva para o tutor.", "s");
+  }catch(e){
+    toast("Alerta nao salvo", e.message || "Confira a tabela vaccine_alerts.", "e");
+  }
+}
+async function loadVaccineAlert(petAddr, consultaId){
+  try{
+    const { data, error } = await supabaseClient
+      .from("vaccine_alerts")
+      .select("next_dose,vaccine_name,vet_wallet")
+      .eq("pet_contract", photoKey(petAddr))
+      .eq("consulta_id", String(consultaId))
+      .maybeSingle();
+    if(error) throw error;
+    return data;
+  }catch(_){
+    return null;
+  }
+}
+
+function niceError(e){
+  if(!e) return "Erro desconhecido.";
+  if(String(e.code)==="4001" || /user rejected|user denied/i.test(e.message||"")) return "Transacao recusada no MetaMask.";
+  let raw = e.shortMessage || e.reason || e.info?.error?.message || e.data?.message || e.message || String(e);
+  raw = String(raw).replace(/^execution reverted:?\s*/i,"").replace(/^Error:\s*/i,"").trim();
+  const mapa = [
+    ["Vet ja registrado", "Essa carteira ja esta cadastrada como veterinaria."],
+    ["Ja aprovado", "Esse veterinario ja foi aprovado."],
+    ["Vet inexistente", "Veterinario nao encontrado."],
+    ["Apenas vets ativos", "Apenas veterinarios ativos podem definir precos."],
+    ["Apenas o dono", "Apenas o dono do pet pode fazer isso."],
+    ["Apenas o veterinario", "Apenas o veterinario escolhido pode fazer isso."],
+    ["Apenas vets com NFT", "Apenas veterinarios com NFT ativo podem fazer isso."],
+    ["Pet falecido", "Esse pet faleceu - o historico esta encerrado."],
+    ["Vet invalido ou inativo", "Esse veterinario nao esta ativo."],
+    ["Pai invalido", "O contrato do pai nao e um pet registrado nesta plataforma."],
+    ["Mae invalida", "O contrato da mae nao e um pet registrado nesta plataforma."],
+    ["Memorial exige vacinacao registrada", "Para registrar o memorial, este pet precisa ter uma vacinacao publica registrada."],
+    ["missing revert data", "A transacao foi rejeitada pelo contrato."],
+    ["OwnableUnauthorizedAccount", "Apenas o administrador pode executar essa acao."],
+    ["nonexistent token", "NFT nao encontrado com esse tokenId."],
+    ["ERC721NonexistentToken", "NFT nao encontrado com esse tokenId."]
+  ];
+  for(const [chave,msg] of mapa){ if(raw.includes(chave)) return msg; }
+  return raw;
+}
+
+function lg(msg, type="i"){
+  const box = document.getElementById("logmsgs");
+  const el = document.createElement("span");
+  el.className = "le " + (type==="i" ? "" : type);
+  el.textContent = msg;
+  box.insertBefore(el, box.firstChild);
+  while(box.children.length > 8) box.removeChild(box.lastChild);
+}
+
+function toast(title, msg, type="i"){
+  const box = document.getElementById("toasts");
+  const el = document.createElement("div");
+  el.className = "toast " + type;
+  el.innerHTML = `<div class="tt">${escapeHtml(title)}</div><div>${escapeHtml(msg)}</div>`;
+  box.appendChild(el);
+  setTimeout(()=>el.remove(), 5500);
+  lg(title + (msg?(" - "+msg):""), type==="s"?"s":type==="e"?"e":type==="p"?"p":"i");
+}
+
+async function runTx(pendingMsg, fn, okTitle, okDetail, after){
+  toast("Aguardando MetaMask", pendingMsg, "p");
+  try{
+    const tx = await fn();
+    lg("Transacao enviada, aguardando confirmacao...", "p");
+    await tx.wait();
+    toast(okTitle, okDetail||"", "s");
+    if(after) await after();
+    return true;
+  }catch(e){
+    toast("Erro", niceError(e), "e");
+    return false;
+  }
+}
+
+async function fetchEthBrl(){
+  try{
+    const r = await fetch("https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=brl");
+    const j = await r.json();
+    ethBrl = j?.ethereum?.brl || 0;
+    const txt = ethBrl ? `1 ETH = R$ ${ethBrl.toLocaleString("pt-BR")}` : "Cotacao indisponivel";
+    const lab = document.getElementById("cotacaoLabel"); if(lab) lab.textContent = "Cotacao atual: " + txt;
+    const box = document.getElementById("cotacaoBox"); if(box) box.innerHTML = ethBrl ? `<b style="font-size:22px;color:var(--green2)">${txt}</b><div class="meta">Fonte: CoinGecko</div>` : "Cotacao indisponivel no momento.";
+  }catch(_){ ethBrl = 0; }
+}
+function brlToWei(brlStr){
+  const val = parseFloat((brlStr||"0").replace(",", "."));
+  if(!val || !ethBrl) return 0n;
+  return ethers.parseEther((val/ethBrl).toFixed(18));
+}
+function weiToBrl(wei){
+  if(!ethBrl || BigInt(wei)===0n) return null;
+  const brl = parseFloat(ethers.formatEther(wei)) * ethBrl;
+  return brl.toLocaleString("pt-BR",{minimumFractionDigits:2,maximumFractionDigits:2});
+}
+
+function showPage(id, btn){
+  document.querySelectorAll(".page").forEach(p=>p.classList.remove("active"));
+  document.querySelectorAll(".nav-tab").forEach(t=>t.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  if(btn) btn.classList.add("active");
+  if(id==="pets") hidePet();
+}
+function subtab(name, btn){
+  document.querySelectorAll(".subtab").forEach(t=>t.classList.remove("on"));
+  document.querySelectorAll(".subpanel").forEach(p=>p.classList.remove("on"));
+  if(btn) btn.classList.add("on");
+  document.getElementById("sub-"+name).classList.add("on");
+  if(name==="admin") loadAdminPanel();
+}
+
+function requireConfig(){
+  const missing = [];
+  if(!validAddress(config.factoryAddress||"")) missing.push("PetFactory");
+  if(!validAddress(config.vetNFTAddress||"")) missing.push("VetNFT");
+  const box = document.getElementById("setupNotice");
+  if(missing.length){
+    box.style.display="block";
+    box.textContent = "Configure os contratos: " + missing.join(", ") + ". Abra a aba Contratos.";
+    return false;
+  }
+  box.style.display="none";
+  return true;
+}
+function contract(addr, abi, write=false){ return new ethers.Contract(addr, abi, write?signer:provider); }
+
+async function connect(){
+  if(!window.ethereum){ toast("MetaMask nao encontrada","Instale a extensao MetaMask.","e"); return; }
+  try{
+    toast("Conectando","Abrindo MetaMask...","p");
+    provider = new ethers.BrowserProvider(window.ethereum);
+    await provider.send("eth_requestAccounts", []);
+    signer = await provider.getSigner();
+    account = await signer.getAddress();
+    const bal = await provider.getBalance(account);
+    document.getElementById("walletLabel").textContent = shortAddr(account) + " · " + Number(ethers.formatEther(bal)).toFixed(3) + " ETH";
+    toast("Conectado", shortAddr(account), "s");
+    await fetchEthBrl();
+    await reloadAll();
+  }catch(e){ toast("Erro de conexao", niceError(e), "e"); }
+}
+async function ensureConnected(){ if(!signer) await connect(); if(!signer) throw new Error("Carteira nao conectada"); }
+
+function loadConfigFields(){
+  document.getElementById("factoryAddress").value = config.factoryAddress || "";
+  document.getElementById("vetNFTAddress").value = config.vetNFTAddress || "";
+  document.getElementById("governanceAddress").value = config.governanceAddress || "";
+}
+async function saveConfig(){
+  const next = {
+    factoryAddress: document.getElementById("factoryAddress").value.trim(),
+    vetNFTAddress: document.getElementById("vetNFTAddress").value.trim(),
+    governanceAddress: document.getElementById("governanceAddress").value.trim()
+  };
+  if(!validAddress(next.factoryAddress) || !validAddress(next.vetNFTAddress)){
+    toast("Enderecos invalidos","PetFactory e VetNFT precisam ser enderecos validos.","e"); return;
+  }
+  if(next.governanceAddress && !validAddress(next.governanceAddress)){
+    toast("Endereco invalido","VetGovernance precisa ser valido ou vazio.","e"); return;
+  }
+  const statusBox = document.getElementById("contractStatus");
+  if(provider){
+    statusBox.innerHTML = '<div class="empty">Verificando contratos na rede...</div>';
+    try{
+      const [cf, cv] = await Promise.all([provider.getCode(next.factoryAddress), provider.getCode(next.vetNFTAddress)]);
+      let html = "";
+      html += `<div class="badge ${cf!=="0x"?"ok":"dead"}">PetFactory: ${cf!=="0x"?"contrato OK":"SEM contrato neste endereco"}</div> `;
+      html += `<div class="badge ${cv!=="0x"?"ok":"dead"}">VetNFT: ${cv!=="0x"?"contrato OK":"SEM contrato neste endereco"}</div>`;
+      statusBox.innerHTML = html;
+      if(cf==="0x" || cv==="0x"){ toast("Atencao","Um dos enderecos nao tem contrato. Confira a rede e o endereco.","e"); }
+    }catch(_){ statusBox.innerHTML=""; }
+  }
+  config = next;
+  localStorage.setItem("petgree.config", JSON.stringify(config));
+  toast("Configuracao salva","", "s");
+  reloadAll();
+}
+
+async function reloadAll(){
+  requireConfig();
+  if(provider && account){
+    await detectOwner();
+    await reloadPets();
+    await renderHomePets();
+    await reloadVets();
+    await updateSummary();
+    renderMeuPerfilVet();
+    renderAdminNote();
+    loadAdminPanel().catch(()=>{});
+  }
+}
+async function updateSummary(){
+  if(!requireConfig() || !provider || !account) return;
+  try{
+    const factory = contract(config.factoryAddress, FACTORY_ABI);
+    const pets = await factory.getPetsByOwner(account);
+    document.getElementById("summary").innerHTML = `<b style="font-size:22px">${pets.length}</b> pet(s) para ${shortAddr(account)}.` + (isOwner ? `<div class="badge ok" style="margin-top:8px">Voce e o admin do VetNFT</div>` : "");
+  }catch(e){ document.getElementById("summary").innerHTML = '<div class="empty">Nao foi possivel ler PetFactory.</div>'; }
+}
+async function detectOwner(){
+  try{
+    const vetNFT = contract(config.vetNFTAddress, VET_ABI);
+    vetOwner = await vetNFT.owner();
+    isOwner = eqAddr(vetOwner, account);
+  }catch(_){ vetOwner=""; isOwner=false; }
+}
+function renderAdminNote(){
+  const el = document.getElementById("adminOwnerNote");
+  if(!el) return;
+  if(isOwner){
+    el.className = "notice";
+    el.style.background = "var(--mint)"; el.style.borderColor = "var(--mint-b)"; el.style.color = "var(--green2)";
+    el.innerHTML = "Voce e o administrador (owner). Pode aprovar e revogar veterinarios.";
+  }else{
+    el.className = "notice";
+    el.style.background = ""; el.style.borderColor = ""; el.style.color = "";
+    el.innerHTML = `Owner do VetNFT: <b>${shortAddr(vetOwner)}</b>. Apenas ele consegue aprovar/revogar.`;
+  }
+}
+
+async function reloadPets(){
+  if(!requireConfig() || !provider || !account){
+    document.getElementById("petsGrid").innerHTML = '<div class="empty">Conecte a carteira e configure os contratos.</div>'; return;
+  }
+  const grid = document.getElementById("petsGrid");
+  grid.innerHTML = '<div class="empty">Carregando pets...</div>';
+  try{
+    const factory = contract(config.factoryAddress, FACTORY_ABI);
+    const addrs = await factory.getPetsByOwner(account);
+    if(!addrs.length){ grid.innerHTML = '<div class="empty">Nenhum pet registrado para esta carteira.</div>'; return; }
+    const photoMap = await loadPetPhotos(addrs);
+    const cards = [];
+    for(const addr of addrs){
+      const pet = contract(addr, PET_ABI);
+      const [nome,raca,nasc,falecido] = await Promise.all([pet.nome(),pet.raca(),pet.dataNascimento(),pet.falecido()]);
+      const imageUrl = photoMap[photoKey(addr)];
+      cards.push(`
+        <article class="card click" onclick="showPet('${addr}')">
+          ${imageUrl ? `<img class="pet-photo" src="${escapeHtml(imageUrl)}" alt="Foto de ${escapeHtml(nome)}">` : `<div class="avatar">${escapeHtml(nome.slice(0,1).toUpperCase())}</div>`}
+          <div class="name">${escapeHtml(nome)}</div>
+          <div class="meta">${escapeHtml(raca)}${Number(nasc)?" - nasc. "+dateFromTs(nasc):""}</div>
+          <div class="badges"><span class="badge ${falecido?"dead":"ok"}">${falecido?"In memoriam":"Ativo"}</span></div>
+          <div class="mono">${addr}</div>
+        </article>`);
+    }
+    grid.innerHTML = cards.join("");
+  }catch(e){ grid.innerHTML = '<div class="empty">Nao foi possivel carregar pets.</div>'; toast("Erro",niceError(e),"e"); }
+}
+
+async function renderHomePets(){
+  const box = document.getElementById("homePets");
+  if(!box) return;
+  if(!requireConfig() || !provider || !account){
+    box.innerHTML = '<div class="home-empty">Conecte a carteira e configure os contratos para ver as identidades dos pets.</div>';
+    return;
+  }
+  box.innerHTML = '<div class="home-empty">Carregando fotos dos pets...</div>';
+  try{
+    const factory = contract(config.factoryAddress, FACTORY_ABI);
+    const addrs = await factory.getPetsByOwner(account);
+    if(!addrs.length){
+      box.innerHTML = '<div class="home-empty">Nenhum pet registrado ainda. Abra a aba Pets para registrar o primeiro.</div>';
+      return;
+    }
+    const photoMap = await loadPetPhotos(addrs);
+    const pets = [];
+    for(const addr of addrs){
+      const pet = contract(addr, PET_ABI);
+      const [nome,raca,nasc,falecido] = await Promise.all([pet.nome(),pet.raca(),pet.dataNascimento(),pet.falecido()]);
+      pets.push({addr,nome,raca,nasc,falecido,img:photoMap[photoKey(addr)] || ""});
+    }
+    const featured = pets[0];
+    const imgOrInitial = (p, cls) => p.img
+      ? `<img src="${escapeHtml(p.img)}" alt="Foto de ${escapeHtml(p.nome)}">`
+      : `<div class="${cls}">${escapeHtml((p.nome||"P").slice(0,1).toUpperCase())}</div>`;
+    const featuredHtml = `
+      <article class="featured-pet" onclick="showPage('pets',document.querySelector('.nav-tab[onclick*=pets]'));showPet('${featured.addr}')">
+        ${imgOrInitial(featured, "featured-empty")}
+        <div class="featured-body">
+          <div class="name">${escapeHtml(featured.nome)}</div>
+          <div class="meta">${escapeHtml(featured.raca)}${Number(featured.nasc)?" - nasc. "+dateFromTs(featured.nasc):""}</div>
+          <div class="badges"><span class="badge ${featured.falecido?"dead":"ok"}">${featured.falecido?"In memoriam":"Ativo"}</span></div>
+          <div class="mono">${featured.addr}</div>
+          <button class="btn sm" style="margin-top:12px">Abrir historico</button>
+        </div>
+      </article>`;
+    const rest = pets.slice(1,3).map(p=>`
+      <article class="mini-pet" onclick="showPage('pets',document.querySelector('.nav-tab[onclick*=pets]'));showPet('${p.addr}')">
+        ${imgOrInitial(p, "mini-empty")}
+        <div class="mini-body">
+          <div class="name">${escapeHtml(p.nome)}</div>
+          <div class="meta">${escapeHtml(p.raca)}</div>
+          <div class="badges"><span class="badge ${p.falecido?"dead":"ok"}">${p.falecido?"In memoriam":"Ativo"}</span></div>
+          <div class="mono">${p.addr}</div>
+        </div>
+      </article>`).join("");
+    const addCard = `
+      <article class="mini-pet" onclick="showPage('pets',document.querySelector('.nav-tab[onclick*=pets]'))">
+        <div class="mini-empty">+</div>
+        <div class="mini-body">
+          <div class="name">Adicionar foto</div>
+          <div class="meta">Abra o pet e use Trocar foto, ou envie no cadastro.</div>
+          <button class="btn secondary sm" style="margin-top:10px">Ir para Pets</button>
+        </div>
+      </article>`;
+    box.innerHTML = `${featuredHtml}<div class="mini-stack">${rest || addCard}${rest ? addCard : ""}</div>`;
+  }catch(e){
+    box.innerHTML = '<div class="home-empty">Nao foi possivel carregar as fotos dos pets.</div>';
+  }
+}
+
+async function showPet(addr){
+  currentPetAddr = addr;
+  document.getElementById("petsListView").style.display = "none";
+  document.getElementById("petDetailView").style.display = "block";
+  const wrap = document.getElementById("petDetail");
+  wrap.innerHTML = '<div class="empty">Carregando pet...</div>';
+  try{
+    const pet = contract(addr, PET_ABI);
+    const photoUrl = await loadPetPhoto(addr);
+    const [nome,raca,dono,nasc,pai,mae,falecido,consultas,atestados,memorial] = await Promise.all([
+      pet.nome(),pet.raca(),pet.dono(),pet.dataNascimento(),pet.pai(),pet.mae(),pet.falecido(),
+      pet.getConsultas(),pet.getAtestados(),pet.getMemorial()
+    ]);
+    const consultasPublicas = Array.from(consultas)
+      .filter(c => Number(c.tipo) !== 1 || String(c.registroPublico || "").trim())
+      .sort((a,b) => (Number(b.data) - Number(a.data)) || (Number(b.id) - Number(a.id)));
+    const consultaHtmls = await Promise.all(consultasPublicas.map(c=>renderConsulta(c,pet)));
+    window._histItens = consultasPublicas.map((c,i)=>({ tipo:Number(c.tipo), vacina:(Number(c.tipo)===1?(c.registroPublico||""):""), html:consultaHtmls[i] }));
+    const history = consultaHtmls.join("") || '<div class="empty">Nenhum atendimento registrado.</div>';
+    const atestadoHtml = atestados.map(a=>`
+      <div class="item"><div class="dot amber">A</div><div>
+        <div class="item-title">Atestado digital</div>
+        <div class="item-line">${shortAddr(a.vet)} - ${dateFromTs(a.data)}</div>
+        <div class="public">${escapeHtml(a.conteudo)}</div>
+      </div></div>`).join("");
+    const memorialHtml = memorial.historia ? `
+      <div class="memorial"><h3>Memorial publico</h3><p>${escapeHtml(memorial.historia)}</p>
+      <small>Obito: ${dateFromTs(memorial.dataObito)} - registro: ${dateFromTs(memorial.dataRegistro)}</small></div>` : "";
+
+    wrap.innerHTML = `
+      <div class="detail">
+        <div class="photo-head">
+          ${photoUrl ? `<img src="${escapeHtml(photoUrl)}" alt="Foto de ${escapeHtml(nome)}">` : `<div class="avatar" style="width:150px;height:150px;border-radius:8px">${escapeHtml(nome.slice(0,1).toUpperCase())}</div>`}
+          <div>
+            <div class="name">${escapeHtml(nome)}</div><div class="meta">${escapeHtml(raca)}</div>
+            <div class="badges"><span class="badge ${falecido?"dead":"ok"}">${falecido?"In memoriam":"Ativo"}</span></div>
+            <div class="photo-actions">
+              <input id="petPhotoUpdate" type="file" accept="image/*">
+              <button class="btn secondary sm" onclick="updatePetPhoto('${addr}')">Salvar foto</button>
+            </div>
+          </div>
+        </div>
+        <div class="facts">
+          <div class="fact"><small>Dono</small><b>${dono}</b></div>
+          <div class="fact"><small>Nascimento</small><b>${dateFromTs(nasc)}</b></div>
+          <div class="fact"><small>Contrato</small><b>${addr}</b></div>
+          <div class="fact"><small>Pai</small><b>${pai===ZERO?"Nao informado":pai}</b></div>
+          <div class="fact"><small>Mae</small><b>${mae===ZERO?"Nao informado":mae}</b></div>
+        </div>
+      </div>
+      ${memorialHtml}
+      ${vetPendingVaccinesForm(consultas)}
+      <div class="cols">
+        <div class="panel">${serviceForm(addr)}</div>
+        <div class="panel">${memorialForm()}</div>
+      </div>
+      <div class="history">
+        <h3>Historico publico</h3>
+        <div class="subtabs" id="histTabs">
+          <button class="subtab on" onclick="filtroHist('todas',this)">Todas</button>
+          <button class="subtab" onclick="filtroHist('0',this)">Consultas</button>
+          <button class="subtab" onclick="filtroHist('1',this)">Vacinacoes</button>
+          <button class="subtab" onclick="filtroHist('2',this)">Internacoes</button>
+        </div>
+        <div id="histVacTabs" style="display:none;margin-bottom:14px"></div>
+        <div id="histItens">${history}</div>
+        ${atestadoHtml}
+      </div>`;
+    updateServiceMode();
+    filtroHist('todas');
+  }catch(e){ wrap.innerHTML = '<div class="empty">Nao foi possivel abrir este pet.</div>'; toast("Erro",niceError(e),"e"); }
+}
+function hidePet(){
+  currentPetAddr = "";
+  document.getElementById("petsListView").style.display = "block";
+  document.getElementById("petDetailView").style.display = "none";
+  document.getElementById("petDetail").innerHTML = "";
+}
+
+async function loadPetPhotos(addrs){
+  const map = {};
+  if(!addrs.length) return map;
+  try{
+    const keys = addrs.map(photoKey);
+    const { data, error } = await supabaseClient
+      .from("pet_photos")
+      .select("pet_contract,image_url")
+      .in("pet_contract", keys);
+    if(error) throw error;
+    for(const row of data || []) map[photoKey(row.pet_contract)] = row.image_url;
+  }catch(e){
+    console.warn("Nao foi possivel carregar fotos dos pets", e);
+  }
+  return map;
+}
+
+async function loadPetPhoto(addr){
+  try{
+    const { data, error } = await supabaseClient
+      .from("pet_photos")
+      .select("image_url")
+      .eq("pet_contract", photoKey(addr))
+      .maybeSingle();
+    if(error) throw error;
+    return data?.image_url || "";
+  }catch(e){
+    console.warn("Nao foi possivel carregar foto do pet", e);
+    return "";
+  }
+}
+
+async function savePetPhoto(petAddr, file){
+  if(!file) return "";
+  const ext = (file.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+  const path = `pets/${photoKey(petAddr)}/profile.${ext}`;
+  const { error: uploadError } = await supabaseClient
+    .storage
+    .from("pet-photos")
+    .upload(path, file, { upsert: true, contentType: file.type || "image/jpeg" });
+  if(uploadError) throw uploadError;
+
+  const { data: pub } = supabaseClient.storage.from("pet-photos").getPublicUrl(path);
+  const imageUrl = pub.publicUrl;
+  const { error: dbError } = await supabaseClient
+    .from("pet_photos")
+    .upsert({
+      pet_contract: photoKey(petAddr),
+      owner_wallet: photoKey(account),
+      image_url: imageUrl,
+      image_path: path,
+      updated_at: new Date().toISOString()
+    }, { onConflict: "pet_contract" });
+  if(dbError) throw dbError;
+  return imageUrl;
+}
+
+async function updatePetPhoto(addr){
+  const file = document.getElementById("petPhotoUpdate")?.files?.[0];
+  if(!file){ toast("Foto", "Escolha uma imagem do pet.", "e"); return; }
+  try{
+    toast("Enviando foto", "Salvando no Supabase...", "p");
+    await savePetPhoto(addr, file);
+    toast("Foto atualizada", "A foto ficou vinculada ao contrato do pet.", "s");
+    await showPet(addr);
+    await reloadPets();
+    await renderHomePets();
+  }catch(e){
+    toast("Erro na foto", e.message || "Nao foi possivel enviar a foto.", "e");
+  }
+}
+
+async function lookupPet(){
+  const addr = document.getElementById("petLookupAddr").value.trim();
+  if(!validAddress(addr)){ toast("Endereco invalido","Cole um endereco de contrato valido (0x...).","e"); return; }
+  if(!provider){
+    if(window.ethereum){ provider = new ethers.BrowserProvider(window.ethereum); }
+    else { toast("Sem conexao","Instale a MetaMask para consultar.","e"); return; }
+  }
+  try{
+    const code = await provider.getCode(addr);
+    if(code === "0x"){ toast("Nao encontrado","Nao existe contrato neste endereco (confira a rede).","e"); return; }
+  }catch(_){}
+  await showPet(addr);
+}
+
+async function renderConsulta(c, petContract){
+  const tipo = Number(c.tipo);
+  const typeName = TYPE_NAMES[tipo] || "Atendimento";
+  const isVaccine = tipo===1;
+  const statusNum = Number(c.status);
+  const statusLabel = statusNum===0 ? "Aberta" : "Finalizada";
+  const statusClass = statusNum===0 ? "aberta" : "finalizada";
+  const ethVal = toEth(c.preco);
+  let brlStr = "";
+  if(BigInt(c.preco) > 0n){
+    if(ethBrl){ brlStr = `<span class="brl">≈ R$ ${weiToBrl(c.preco)}</span>`; }
+    else { try{ const [r,ct]=await petContract.converterParaReais(c.preco); brlStr=`<span class="brl">≈ R$ ${Number(r).toLocaleString("pt-BR")},${String(Number(ct)).padStart(2,"0")}</span>`; }catch(_){} }
+  }
+  const precoHtml = BigInt(c.preco)>0n ? `<div class="preco-ref">Referencia: <span class="eth">${ethVal} ETH</span>${brlStr}<span style="color:var(--soft);font-size:11px"> - pagamento presencial</span></div>` : "";
+  let vacineHtml = "";
+  if(isVaccine && c.registroPublico){
+    const alert = await loadVaccineAlert(currentPetAddr, c.id);
+    const status = vaccineStatus(alert?.next_dose);
+    vacineHtml = `
+      <div class="vaccine-card ${status.cls}">
+        <div class="vaccine-head">
+          <span class="vaccine-name">${escapeHtml(c.registroPublico)}</span>
+          <span class="vaccine-badge">${status.badge}</span>
+        </div>
+        <div class="vaccine-detail">Aplicada em ${dateFromTs(c.data)}</div>
+        <div class="vaccine-detail">Proxima dose recomendada: ${alert?.next_dose ? formatYmd(alert.next_dose) : "nao informada"}</div>
+        <div class="vaccine-alert">${escapeHtml(status.text)}</div>
+      </div>`;
+  }
+  const pendingVaccineNote = isVaccine && !c.registroPublico ? `<div class="public">Aguardando o veterinario registrar o nome da vacina aplicada.</div>` : "";
+  return `
+    <div class="item"><div class="dot ${isVaccine?"amber":"green"}">${typeName[0]}</div>
+      <div style="flex:1">
+        <div class="item-title">${typeName}<span class="status-tag ${statusClass}">${statusLabel}</span></div>
+        <div class="item-line">Vet ${shortAddr(c.vet)} - ${dateFromTs(c.data)}${Number(c.diasInternacao)?" - "+c.diasInternacao+" diaria(s)":""}</div>
+        ${precoHtml}${vacineHtml}${pendingVaccineNote}
+      </div></div>`;
+}
+
+function filtroHist(tipo, btn){
+  const itens = window._histItens || [];
+  if(btn){ document.querySelectorAll("#histTabs .subtab").forEach(b=>b.classList.remove("on")); btn.classList.add("on"); }
+  const vacTabs = document.getElementById("histVacTabs");
+  const box = document.getElementById("histItens");
+  if(!box) return;
+  if(tipo === "1"){
+    const vacinas = [...new Set(itens.filter(i=>i.tipo===1 && i.vacina).map(i=>i.vacina))];
+    let tabsHtml = `<div class="subtabs"><button class="subtab on" onclick="filtroVacina('todas',this)">Todas</button>`;
+    vacinas.forEach(v=>{ tabsHtml += `<button class="subtab" onclick="filtroVacina('${escapeHtml(v).replace(/'/g,"")}',this)">${escapeHtml(v)}</button>`; });
+    tabsHtml += `</div>`;
+    vacTabs.innerHTML = tabsHtml;
+    vacTabs.style.display = "block";
+    filtroVacina('todas');
+    return;
+  }
+  vacTabs.style.display = "none";
+  vacTabs.innerHTML = "";
+  const filtrados = (tipo === "todas") ? itens : itens.filter(i=>i.tipo===Number(tipo));
+  box.innerHTML = filtrados.map(i=>i.html).join("") || '<div class="empty">Nenhum registro nesta categoria.</div>';
+}
+
+function filtroVacina(nome, btn){
+  const itens = window._histItens || [];
+  if(btn){ document.querySelectorAll("#histVacTabs .subtab").forEach(b=>b.classList.remove("on")); btn.classList.add("on"); }
+  const box = document.getElementById("histItens");
+  if(!box) return;
+  const vacs = itens.filter(i=>i.tipo===1);
+  const filtrados = (nome === "todas") ? vacs : vacs.filter(i=>i.vacina===nome);
+  box.innerHTML = filtrados.map(i=>i.html).join("") || '<div class="empty">Nenhuma vacina desta categoria.</div>';
+}
+
+function vetPendingVaccinesForm(consultas){
+  if(!account) return "";
+  const pendentes = consultas.filter(c =>
+    Number(c.tipo) === 1 &&
+    Number(c.status) === 0 &&
+    eqAddr(c.vet, account) &&
+    !String(c.registroPublico || "").trim()
+  );
+  if(!pendentes.length) return "";
+  return `
+    <div class="panel" style="margin-bottom:16px;border-top:4px solid var(--amber)">
+      <h3>Registrar vacina aplicada</h3>
+      <p style="font-size:13px;color:var(--soft);margin-bottom:10px">
+        Esta etapa e responsabilidade do veterinario escolhido na vacinacao.
+      </p>
+      <div class="field">
+        <label>Vacinacao pendente</label>
+        <select id="vetVacConsultaId">
+          ${pendentes.map(c => `<option value="${c.id}">Vacinacao #${c.id} - ${dateFromTs(c.data)}</option>`).join("")}
+        </select>
+      </div>
+      <div class="field">
+        <label>Nome da vacina aplicada</label>
+        <input id="vetVacName" autocomplete="off" placeholder="Ex: Antirrabica, V10, V4...">
+      </div>
+      <div class="field">
+        <label>Proxima dose recomendada</label>
+        <input id="vetVacNextDose" type="date">
+      </div>
+      <p style="font-size:12px;color:var(--soft);margin:-4px 0 12px">
+        A vacina vai para a blockchain. Esta data fica no Supabase apenas para alertar o tutor.
+      </p>
+      <button class="btn" onclick="vetAddVaccineRecord()">Registrar vacina</button>
+    </div>`;
+}
+
+async function vetAddVaccineRecord(){
+  await ensureConnected();
+  const id = document.getElementById("vetVacConsultaId")?.value;
+  const nome = document.getElementById("vetVacName")?.value.trim();
+  const nextDose = document.getElementById("vetVacNextDose")?.value;
+  if(!id){ toast("Vacina", "Nenhuma vacinacao pendente selecionada.", "e"); return; }
+  if(!nome){ toast("Vacina", "Informe o nome da vacina aplicada.", "e"); return; }
+  if(!nextDose){ toast("Validade", "Informe a proxima dose recomendada.", "e"); return; }
+  await runTx(
+    "Registrando vacina...",
+    () => contract(currentPetAddr, PET_ABI, true).addRecord(id, nome),
+    "Vacina registrada",
+    "Publicada no historico do pet.",
+    async () => {
+      await saveVaccineAlert(currentPetAddr, id, nome, nextDose);
+      await showPet(currentPetAddr);
+    }
+  );
+}
+
+function serviceForm(addr){ return `
+  <h3>Registrar atendimento</h3>
+  <div class="field"><label>Veterinario</label><input id="svcVet" autocomplete="off" value="${escapeHtml(selectedVet)}" placeholder="0x..." oninput="refreshServicePrice()"></div>
+  <div class="field"><label>Tipo</label><select id="svcType" onchange="updateServiceMode()">
+    <option value="0">Consulta</option>
+    <option value="2">Internacao</option>
+    <option value="1">Vacinacao</option>
+  </select></div>
+  <div class="field" id="svcDaysWrap" style="display:none"><label>Diarias de internacao</label><input id="svcDays" type="number" min="1" value="1" oninput="refreshServicePrice()"></div>
+  <div id="svcPricePreview" class="preco-ref">Informe um veterinario para ver o preco.</div>
+  <button id="svcBtn" class="btn" onclick="openService('${addr}')">Pagar consulta</button>`; }
+
+function memorialForm(){ return `
+  <h3>Memorial</h3>
+  <p style="font-size:12px;color:var(--soft);margin:-4px 0 12px">- Exige vacinacao publica registrada no historico.</p>
+  <div class="field"><label>Historia publica</label><textarea id="memorialText"></textarea></div>
+  <div class="field"><label>Data do obito</label><input id="deathDate" type="date"></div>
+  <button class="btn danger" onclick="markDeceased()">Registrar memorial</button>`; }
+
+function updateServiceMode(){
+  const sel = document.getElementById("svcType");
+  if(!sel) return;
+  const tipo = Number(sel.value);
+  document.getElementById("svcDaysWrap").style.display = tipo===2 ? "grid" : "none";
+  const btn = document.getElementById("svcBtn");
+  if(btn) btn.textContent = tipo===2 ? "Pagar internacao" : (tipo===1 ? "Abrir vacinacao" : "Pagar consulta");
+  refreshServicePrice();
+}
+
+async function refreshServicePrice(){
+  const box = document.getElementById("svcPricePreview");
+  if(!box || !provider || !requireConfig()) return;
+  const vet = document.getElementById("svcVet")?.value.trim();
+  const tipo = Number(document.getElementById("svcType")?.value || 0);
+  const days = tipo===2 ? Number(document.getElementById("svcDays")?.value || 0) : 0;
+  if(!validAddress(vet)){ box.innerHTML = "Informe um veterinario valido para ver o preco."; return; }
+  if(tipo===2 && days<1){ box.innerHTML = "Informe a quantidade de diarias."; return; }
+  try{
+    const vetNFT = contract(config.vetNFTAddress, VET_ABI);
+    const tipoPreco = tipo===2 ? 2 : 0;
+    const preco = await vetNFT.getVetPrice(vet, tipoPreco, tipo===2?days:0);
+    if(BigInt(preco)===0n){ box.innerHTML = "Esse veterinario ainda nao definiu preco."; return; }
+    const brl = weiToBrl(preco);
+    const label = tipo===1 ? "Consulta para vacinacao" : (tipo===2 ? "Internacao" : "Consulta");
+    box.innerHTML = `${label}: <span class="eth">${toEth(preco)} ETH</span> ${brl?`<span class="brl">≈ R$ ${brl}</span>`:""} <span style="color:var(--soft);font-size:11px"> - pagamento presencial</span>`;
+  }catch(_){ box.innerHTML = "Nao foi possivel carregar o preco deste veterinario."; }
+}
+
+async function registerPet(){
+  await ensureConnected(); if(!requireConfig()) return;
+  const nome=document.getElementById("petName").value.trim();
+  const raca=document.getElementById("petBreed").value.trim();
+  const birth=document.getElementById("petBirth").value;
+  const photoFile=document.getElementById("petPhoto")?.files?.[0];
+  if(!nome||!raca||!birth){ toast("Campos obrigatorios","Preencha nome, raca/endereco e nascimento.","e"); return; }
+  const pai=cleanAddress(document.getElementById("petFather").value.trim());
+  const mae=cleanAddress(document.getElementById("petMother").value.trim());
+  const ts=Math.floor(new Date(birth+"T00:00:00").getTime()/1000);
+  toast("Aguardando MetaMask", "Registrando pet...", "p");
+  try{
+    const factory = contract(config.factoryAddress, FACTORY_ABI, true);
+    const tx = await factory.registerPet(nome,raca,ts,pai,mae);
+    lg("Transacao enviada, aguardando confirmacao...", "p");
+    const receipt = await tx.wait();
+    let petAddr = "";
+    for(const log of receipt.logs){
+      try{
+        const parsed = factory.interface.parseLog(log);
+        if(parsed?.name === "PetRegistrado"){
+          petAddr = parsed.args.petContract;
+          break;
+        }
+      }catch(_){}
+    }
+    if(photoFile && petAddr){
+      toast("Enviando foto", "Vinculando foto ao contrato do pet...", "p");
+      await savePetPhoto(petAddr, photoFile);
+    }
+    toast("Pet registrado", photoFile ? "Seu pet e a foto ja estao salvos." : "Seu pet ja esta na blockchain.", "s");
+    document.getElementById("petName").value = "";
+    document.getElementById("petBreed").value = "";
+    document.getElementById("petBirth").value = "";
+    document.getElementById("petFather").value = "";
+    document.getElementById("petMother").value = "";
+    document.getElementById("petPhoto").value = "";
+    await reloadPets();
+    await renderHomePets();
+  }catch(e){
+    toast("Erro", niceError(e), "e");
+  }
+}
+
+async function openService(petAddr){
+  await ensureConnected();
+  const vet=document.getElementById("svcVet").value.trim();
+  const tipo=Number(document.getElementById("svcType").value);
+  const days=tipo===2 ? Number(document.getElementById("svcDays").value||0) : 0;
+  if(!validAddress(vet)){ toast("Endereco invalido","Informe um veterinario valido.","e"); return; }
+  if(tipo===2 && days<1){ toast("Diarias","Informe as diarias para internacao.","e"); return; }
+  selectedVet=vet; localStorage.setItem("petgree.selectedVet",vet);
+
+  if(tipo===1){
+    await runTx(
+      "Abrindo vacinacao...",
+      ()=>contract(petAddr,PET_ABI,true).openConsultation(vet,1,0),
+      "Vacinacao aberta",
+      "Agora o veterinario escolhido deve registrar o nome da vacina.",
+      ()=>showPet(petAddr)
+    );
+    return;
+  }
+
+  const label = tipo===2 ? "internacao" : "consulta";
+  await runTx(`Pagando ${label}...`, ()=>contract(petAddr,PET_ABI,true).openConsultation(vet,tipo,days),
+    "Atendimento registrado","Registrado no prontuario.", ()=>showPet(petAddr));
+}
+
+async function markDeceased(){
+  await ensureConnected();
+  const text=document.getElementById("memorialText").value.trim(), date=document.getElementById("deathDate").value;
+  if(!text||!date){ toast("Campos","Informe historia e data do obito.","e"); return; }
+  if(!currentPetAddr){ toast("Erro","Nenhum pet aberto.","e"); return; }
+  const ts=Math.floor(new Date(date+"T00:00:00").getTime()/1000);
+  await runTx("Registrando memorial...", ()=>contract(currentPetAddr,PET_ABI,true).markAsDeceased(text,ts),
+    "Memorial registrado","Eternizado na blockchain.", ()=>showPet(currentPetAddr));
+}
+
+async function registerVetRequest(){
+  await ensureConnected(); if(!requireConfig()) return;
+  const nome=document.getElementById("vetName").value.trim();
+  const crmv=document.getElementById("vetCrmv").value.trim();
+  const cidade=document.getElementById("vetCidade").value.trim();
+  const bairro=document.getElementById("vetBairro").value.trim();
+  const telefone=document.getElementById("vetTelefone").value.trim();
+  if(!nome||!crmv||!cidade||!bairro||!telefone){ toast("Campos obrigatorios","Preencha todos os campos.","e"); return; }
+  await runTx("Enviando solicitacao...", ()=>contract(config.vetNFTAddress,VET_ABI,true).registerVet(nome,crmv,cidade,bairro,telefone),
+    "Solicitacao enviada","Aguarde a aprovacao do administrador.", ()=>{ renderMeuPerfilVet(); cacheVet(account); });
+}
+
+async function updateVetPhone(){
+  await ensureConnected();
+  if(!requireConfig()) return;
+  const telefone = document.getElementById("vetPhoneUpdate").value.trim();
+  if(!telefone){ toast("Telefone", "Informe o novo telefone publico.", "e"); return; }
+  await runTx(
+    "Atualizando telefone...",
+    ()=>contract(config.vetNFTAddress,VET_ABI,true).atualizarTelefone(telefone),
+    "Telefone atualizado",
+    "O contato publico do veterinario foi atualizado.",
+    async ()=>{
+      document.getElementById("vetTelefone").value = telefone;
+      document.getElementById("vetPhoneUpdate").value = "";
+      await reloadVets();
+      renderMeuPerfilVet();
+    }
+  );
+}
+
+async function setVetPrices(){
+  await ensureConnected();
+  if(!ethBrl){ toast("Cotacao","Cotacao ETH/BRL ainda nao carregada. Tente de novo.","e"); return; }
+  const consultaWei=brlToWei(document.getElementById("consultaPrice").value);
+  const diariaWei=brlToWei(document.getElementById("diariaPrice").value);
+  if(consultaWei===0n && diariaWei===0n){ toast("Precos","Informe pelo menos um preco em reais.","e"); return; }
+  await runTx("Salvando precos...", ()=>contract(config.vetNFTAddress,VET_ABI,true).setPrices(consultaWei,diariaWei),
+    "Precos atualizados","", reloadVets);
+}
+
+async function renderMeuPerfilVet(){
+  const el = document.getElementById("meuPerfilVet");
+  if(!el || !provider || !account || !requireConfig()){ if(el) el.style.display="none"; return; }
+  try{
+    const vetNFT = contract(config.vetNFTAddress, VET_ABI);
+    const [v, has, active] = await Promise.all([vetNFT.getVet(account), vetNFT.hasNFT(account), vetNFT.isVetActive(account)]);
+    if(!v.nome){ el.style.display="none"; return; }
+    el.style.display="block";
+    let estado;
+    if(active) estado = "Ativo (NFT #" + v.tokenId + ")";
+    else if(has) estado = "NFT mintado, mas inativo (revogado)";
+    else estado = "Pendente - aguardando aprovacao do administrador";
+    el.innerHTML = `Seu cadastro: <b>${escapeHtml(v.nome)}</b> · CRMV ${escapeHtml(v.crmv)} · Telefone ${escapeHtml(v.telefone || "-")} · <b>${estado}</b>`;
+  }catch(_){ el.style.display="none"; }
+}
+
+function cacheVet(addr){
+  if(!validAddress(addr)) return;
+  try{
+    const k = "petgree.knownVets";
+    const arr = JSON.parse(localStorage.getItem(k) || "[]");
+    if(!arr.map(a=>a.toLowerCase()).includes(addr.toLowerCase())){ arr.push(addr); localStorage.setItem(k, JSON.stringify(arr)); }
+  }catch(_){}
+}
+function getCachedVets(){
+  try{ return JSON.parse(localStorage.getItem("petgree.knownVets") || "[]").filter(validAddress); }catch{ return []; }
+}
+function getIgnored(){
+  try{ return JSON.parse(localStorage.getItem("petgree.ignoredVets") || "[]").map(a=>a.toLowerCase()); }catch{ return []; }
+}
+function isIgnored(addr){ return getIgnored().includes(addr.toLowerCase()); }
+function ignoreVet(addr){
+  try{
+    const arr = getIgnored();
+    if(!arr.includes(addr.toLowerCase())){ arr.push(addr.toLowerCase()); localStorage.setItem("petgree.ignoredVets", JSON.stringify(arr)); }
+  }catch(_){}
+  toast("Solicitacao ignorada", "Sumiu da lista. Sem custo - nenhuma transacao foi feita.", "s");
+  loadAdminPanel();
+}
+
+async function reloadVets(){
+  const list = document.getElementById("vetList");
+  if(!provider || !requireConfig()){ if(list) list.innerHTML='<div class="empty">Conecte a carteira e configure VetNFT.</div>'; return; }
+  if(list) list.innerHTML='<div class="empty">Buscando veterinarios ativos...</div>';
+  try{
+    const vetNFT = contract(config.vetNFTAddress, VET_ABI);
+    const addresses = await vetNFT.getAllVets();
+    allVets = [];
+    for(const addr of addresses){
+      try{
+        const [v, active] = await Promise.all([vetNFT.getVet(addr), vetNFT.isVetActive(addr)]);
+        cacheVet(addr);
+        if(active) allVets.push({ addr, v });
+      }catch(_){}
+    }
+    renderVetSearch();
+  }catch(e){ if(list) list.innerHTML='<div class="empty">Nao foi possivel ler o VetNFT.</div>'; toast("Erro",niceError(e),"e"); }
+}
+
+function vetCardHtml(addr, v, active){
+  shownVets[addr] = { v, active };
+  const cBrl = weiToBrl(v.consultaPrice), dBrl = weiToBrl(v.diariaInternacaoPrice);
+  const cStr = cBrl ? `R$ ${cBrl}` : `${toEth(v.consultaPrice)} ETH`;
+  const dStr = dBrl ? `R$ ${dBrl}` : `${toEth(v.diariaInternacaoPrice)} ETH`;
+  const ini = (v.nome||"VT").trim().slice(0,2).toUpperCase();
+  const nome = escapeHtml(v.nome||"Sem cadastro");
+  return `
+    <div class="vetrow" id="row-${addr}" onclick="openVetDetail('${addr}')">
+      <div class="vethead">
+        <div class="vetav">${escapeHtml(ini)}</div>
+        <div class="vetinfo">
+          <div class="vetname">${nome}<span class="st ${active?"a":"i"}">${active?"Ativo":"Inativo"}</span></div>
+          <div class="vetsub">
+            CRMV ${escapeHtml(v.crmv||"-")} · ${escapeHtml(v.cidade||"Cidade?")}/${escapeHtml(v.bairro||"Bairro?")}<br>
+            Tel ${escapeHtml(v.telefone||"-")} · NFT #${v.tokenId}
+          </div>
+        </div>
+        <div class="vetprice">${cStr}<small>Diaria ${dStr}</small></div>
+      </div>
+    </div>`;
+}
+
+function openVetDetail(addr, target){
+  const data = shownVets[addr];
+  if(!data) return;
+  const { v, active } = data;
+  document.querySelectorAll(".vetrow").forEach(r=>r.classList.remove("sel"));
+  document.getElementById("row-"+addr)?.classList.add("sel");
+  const cBrl = weiToBrl(v.consultaPrice), dBrl = weiToBrl(v.diariaInternacaoPrice);
+  const cStr = cBrl ? `R$ ${cBrl}` : `${toEth(v.consultaPrice)} ETH`;
+  const dStr = dBrl ? `R$ ${dBrl}` : `${toEth(v.diariaInternacaoPrice)} ETH`;
+  const box = document.getElementById(target || "vetDetailPanel");
+  if(!box) return;
+  box.innerHTML = `
+    <div class="vetdetail">
+      <div class="dt-name">${escapeHtml(v.nome||"Sem cadastro")}
+        <span class="badge ${active?"ok":"dead"}">${active?"Ativo":"Inativo"}</span>
+        <span class="badge warn">NFT #${v.tokenId}</span>
+      </div>
+      <div class="det">
+        <div><small>CRMV</small><b>${escapeHtml(v.crmv||"-")}</b></div>
+        <div><small>Telefone</small><b>${escapeHtml(v.telefone||"-")}</b></div>
+        <div><small>Cidade</small><b>${escapeHtml(v.cidade||"-")}</b></div>
+        <div><small>Bairro</small><b>${escapeHtml(v.bairro||"-")}</b></div>
+        <div><small>Consulta</small><b>${cStr}</b></div>
+        <div><small>Diaria internacao</small><b>${dStr}</b></div>
+      </div>
+      <div class="mono">Carteira: ${addr}</div>
+      <button class="btn" style="margin-top:12px" onclick="selectVetForService('${addr}')">Selecionar para atendimento</button>
+    </div>`;
+  box.scrollIntoView({ behavior:"smooth", block:"nearest" });
+}
+
+function renderVetSearch(){
+  const list = document.getElementById("vetList");
+  if(!list) return;
+  const cidadeBusca = (document.getElementById("vetSearchCidade")?.value||"").trim().toLowerCase();
+  const bairroBusca = (document.getElementById("vetSearchBairro")?.value||"").trim().toLowerCase();
+  const filtered = allVets.filter(({v})=>{
+    const cidade = String(v.cidade||"").toLowerCase(), bairro = String(v.bairro||"").toLowerCase();
+    return (!cidadeBusca || cidade.includes(cidadeBusca)) && (!bairroBusca || bairro.includes(bairroBusca));
+  });
+  list.innerHTML = filtered.map(({addr,v})=>vetCardHtml(addr,v,true)).join("") || '<div class="empty">Nenhum veterinario encontrado.</div>';
+}
+
+function selectVetForService(addr){
+  selectedVet = addr; localStorage.setItem("petgree.selectedVet", addr);
+  const input = document.getElementById("svcVet"); if(input) input.value = addr;
+  toast("Veterinario selecionado", "Abra um pet e o vet ja estara preenchido no atendimento.", "s");
+}
+
+async function searchByTokenId(){
+  const out = document.getElementById("tokenIdResult");
+  if(!provider || !requireConfig()){ out.innerHTML='<div class="empty">Conecte a carteira e configure VetNFT.</div>'; return; }
+  const tokenId = document.getElementById("tokenIdSearch").value;
+  if(!tokenId || Number(tokenId)<1){ out.innerHTML='<div class="empty">Informe um tokenId valido.</div>'; return; }
+  out.innerHTML='<div class="empty">Buscando NFT...</div>';
+  try{
+    const vetNFT = contract(config.vetNFTAddress, VET_ABI);
+    const addr = await vetNFT.ownerOf(tokenId);
+    const [v, active] = await Promise.all([vetNFT.getVet(addr), vetNFT.isVetActive(addr)]);
+    out.innerHTML = vetCardHtml(addr, v, active) + '<div id="tokenDetailPanel"></div>';
+    openVetDetail(addr, "tokenDetailPanel");
+  }catch(e){ out.innerHTML='<div class="empty">Nenhum NFT encontrado com esse tokenId.</div>'; }
+}
+
+async function loadAdminPanel(){
+  const pendBox = document.getElementById("pendingList");
+  const mintBox = document.getElementById("mintedList");
+  if(!pendBox || !mintBox) return;
+  if(!provider || !requireConfig()){ pendBox.innerHTML = mintBox.innerHTML = '<div class="empty">Conecte a carteira e configure VetNFT.</div>'; return; }
+  renderAdminNote();
+  pendBox.innerHTML = '<div class="empty">Buscando solicitacoes...</div>';
+  mintBox.innerHTML = '<div class="empty">Carregando veterinarios...</div>';
+  const vetNFT = contract(config.vetNFTAddress, VET_ABI);
+  let mintados = [];
+  try{
+    const addrs = await vetNFT.getAllVets();
+    for(const addr of addrs){
+      try{
+        const [v, active] = await Promise.all([vetNFT.getVet(addr), vetNFT.isVetActive(addr)]);
+        cacheVet(addr);
+        mintados.push({ addr, v, active });
+      }catch(_){}
+    }
+  }catch(e){
+    mintBox.innerHTML = '<div class="empty">Nao foi possivel ler getAllVets do VetNFT.</div>';
+  }
+  mintBox.innerHTML = mintados.length ? mintados.map(({addr,v,active})=>{
+    const cBrl = weiToBrl(v.consultaPrice), dBrl = weiToBrl(v.diariaInternacaoPrice);
+    const cStr = cBrl ? `R$ ${cBrl}` : `${toEth(v.consultaPrice)} ETH`;
+    const dStr = dBrl ? `R$ ${dBrl}` : `${toEth(v.diariaInternacaoPrice)} ETH`;
+    return `
+    <div class="card">
+      <div class="name">${escapeHtml(v.nome||"Sem nome")} <span class="badge warn">NFT #${v.tokenId}</span></div>
+      <div class="meta">${escapeHtml(v.cidade||"")} / ${escapeHtml(v.bairro||"")} - ${escapeHtml(v.crmv||"")}</div>
+      <div class="badges">
+        <span class="badge ${active?"ok":"dead"}">${active?"Ativo":"Revogado"}</span>
+        <span class="badge warn">Consulta: ${cStr}</span>
+        <span class="badge ok">Diaria: ${dStr}</span>
+      </div>
+      <div class="mono">Telefone: ${escapeHtml(v.telefone||"Nao informado")}<br>Carteira: ${addr}</div>
+      <div class="row" style="margin-top:10px">
+        ${active ? `<button class="btn danger sm" onclick="revokeVet('${addr}')">Revogar NFT</button>` : `<span class="badge dead">Revogado permanentemente</span>`}
+      </div>
+    </div>`;
+  }).join("") : '<div class="empty">Nenhum veterinario com NFT ainda. Quando alguem for aprovado, aparece aqui.</div>';
+
+  pendBox.innerHTML = '<div class="empty">Buscando solicitacoes pendentes...</div>';
+  const candidatos = new Set(getCachedVets().map(a=>a.toLowerCase()));
+  if(account) candidatos.add(account.toLowerCase());
+  try{
+    const latest = await provider.getBlockNumber();
+    const STEP = 9000, MAX_BACK = 45000;
+    let to = latest;
+    for(let i = 0; i < Math.ceil(MAX_BACK / STEP); i++){
+      const from = Math.max(0, to - STEP);
+      try{
+        const evs = await vetNFT.queryFilter(vetNFT.filters.VetSolicitado(), from, to);
+        for(const ev of evs){ const a = ev.args?.vet; if(a && validAddress(a)) candidatos.add(a.toLowerCase()); }
+      }catch(_){}
+      if(from === 0) break;
+      to = from - 1;
+    }
+  }catch(_){}
+
+  const jaMintados = new Set(mintados.map(m=>m.addr.toLowerCase()));
+  const pendentes = [];
+  for(const al of candidatos){
+    if(jaMintados.has(al)) continue;
+    if(isIgnored(al)) continue;
+    const addr = ethers.getAddress(al);
+    try{
+      const [v, has] = await Promise.all([vetNFT.getVet(addr), vetNFT.hasNFT(addr)]);
+      if(!v.nome || has) continue;
+      pendentes.push({ addr, v });
+    }catch(_){}
+  }
+  pendBox.innerHTML = pendentes.length ? pendentes.map(({addr,v})=>`
+    <div class="card">
+      <div class="name">${escapeHtml(v.nome||"Sem nome")}</div>
+      <div class="meta">${escapeHtml(v.cidade||"")} / ${escapeHtml(v.bairro||"")} - ${escapeHtml(v.crmv||"")}</div>
+      <div class="mono">Telefone: ${escapeHtml(v.telefone||"Nao informado")}<br>Carteira: ${addr}</div>
+      <div class="row" style="margin-top:10px">
+        <button class="btn sm" onclick="approveVet('${addr}')">Aprovar e mintar NFT</button>
+        <button class="btn secondary sm" onclick="ignoreVet('${addr}')">Ignorar</button>
+      </div>
+    </div>`).join("") : '<div class="empty">Nenhuma solicitacao pendente.</div>';
+}
+
+async function approveVet(addr){
+  await ensureConnected();
+  await runTx("Aprovando e mintando NFT...", ()=>contract(config.vetNFTAddress,VET_ABI,true).approveVet(addr),
+    "Veterinario aprovado","NFT mintado.", async()=>{ await loadAdminPanel(); await reloadVets(); });
+}
+async function revokeVet(addr){
+  await ensureConnected();
+  if(!confirm("Revogar e PERMANENTE. O veterinario perde a credencial para sempre e so podera voltar com um endereco novo. Confirmar?")) return;
+  await runTx("Revogando credencial...", ()=>contract(config.vetNFTAddress,VET_ABI,true).deactivateVet(addr),
+    "Veterinario revogado","A credencial foi desativada permanentemente.", async()=>{ await loadAdminPanel(); await reloadVets(); });
+}
+
+loadConfigFields();
+requireConfig();
+fetchEthBrl();
+if(window.ethereum){
+  window.ethereum.on("accountsChanged", ()=>location.reload());
+  window.ethereum.on("chainChanged", ()=>location.reload());
+}
+</script>
+</body>
+</html>
+
