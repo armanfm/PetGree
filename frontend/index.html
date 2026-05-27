@@ -210,17 +210,29 @@ nav{height:62px;background:var(--green);display:flex;align-items:center;padding:
       <div id="meuPerfilVet" class="notice" style="display:none"></div>
       <div class="field"><label>Nome profissional</label><input id="vetName"></div>
       <div class="field"><label>CRMV</label><input id="vetCrmv"></div>
-      <div class="field"><label>Cidade</label><input id="vetCidade"></div>
-      <div class="field"><label>Bairro de atendimento</label><input id="vetBairro"></div>
-      <div class="field"><label>Telefone publico</label><input id="vetTelefone"></div>
       <button class="btn" onclick="registerVetRequest()">Solicitar cadastro</button>
       <p style="font-size:12px;color:var(--soft);margin-top:8px">Apos solicitar, aguarde a aprovacao do administrador para o NFT ser mintado.</p>
       <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
 
-      <h3 style="font-size:16px">Atualizar telefone</h3>
-      <p style="font-size:13px;color:var(--soft);margin-bottom:10px">Use se seu WhatsApp, telefone comercial ou canal publico mudar.</p>
-      <div class="field"><label>Novo telefone publico</label><input id="vetPhoneUpdate" autocomplete="off" placeholder="Ex: (81) 99999-9999"></div>
-      <button class="btn secondary" onclick="updateVetPhone()">Atualizar telefone</button>
+      <h3 style="font-size:16px">Localizacao e contato</h3>
+      <p style="font-size:13px;color:var(--soft);margin-bottom:10px">Dados comerciais ficam no Supabase e podem ser atualizados sem mexer na blockchain.</p>
+      <div id="meuLocalVet" class="notice" style="display:none"></div>
+      <div class="field"><label>Telefone publico</label><input id="vetTelefone" autocomplete="off" placeholder="Ex: (81) 99999-9999"></div>
+      <div class="field"><label>CEP</label><input id="vetCep" autocomplete="off" placeholder="Ex: 53437-000"></div>
+      <div class="field"><label>Endereco ou clinica</label><input id="vetEndereco" autocomplete="off" placeholder="Digite o endereco comercial"></div>
+      <div class="row" style="margin-bottom:12px">
+        <button class="btn secondary sm" onclick="resolveVetAddress()">Buscar com Geoapify</button>
+        <button class="btn sm" onclick="saveVetLocationForm()">Salvar no Supabase</button>
+      </div>
+      <div class="grid">
+        <div class="field"><label>Cidade</label><input id="vetCidade" autocomplete="off"></div>
+        <div class="field"><label>Bairro</label><input id="vetBairro" autocomplete="off"></div>
+        <div class="field"><label>Estado</label><input id="vetEstado" autocomplete="off"></div>
+        <div class="field"><label>Pais</label><input id="vetPais" autocomplete="off" value="Brasil"></div>
+      </div>
+      <input id="vetLat" type="hidden">
+      <input id="vetLon" type="hidden">
+      <input id="vetGeoPlaceId" type="hidden">
 
       <hr style="border:0;border-top:1px solid var(--line);margin:16px 0">
       <p style="font-size:13px;color:var(--soft);margin-bottom:8px">Precos de referencia - exibidos no prontuario, pagamento presencial.</p>
@@ -238,6 +250,7 @@ nav{height:62px;background:var(--green);display:flex;align-items:center;padding:
         <p style="font-size:13px;color:var(--soft);margin-bottom:12px">Todos os vets ativos. Filtre por cidade e depois por bairro.</p>
         <div class="field"><label>Cidade</label><input id="vetSearchCidade" oninput="renderVetSearch()" placeholder="Ex: Paulista"></div>
         <div class="field"><label>Bairro</label><input id="vetSearchBairro" oninput="renderVetSearch()" placeholder="Ex: Janga"></div>
+        <div class="field"><label>CEP</label><input id="vetSearchCep" oninput="renderVetSearch()" placeholder="Ex: 53437"></div>
         <button class="btn secondary" onclick="reloadVets()">Recarregar lista</button>
         <div id="vetList" style="margin-top:14px"></div>
         <div id="vetDetailPanel"></div>
@@ -255,10 +268,19 @@ nav{height:62px;background:var(--green);display:flex;align-items:center;padding:
   <section id="sub-admin" class="subpanel">
     <div class="panel" style="border-top:4px solid var(--amber)">
       <div class="head" style="margin-bottom:14px">
-        <div><h3 style="margin:0">Administracao - aprovar e revogar</h3></div>
-        <button class="btn secondary sm" onclick="loadAdminPanel()">↻ Atualizar</button>
+        <div><h3 style="margin:0">Administracao - aprovar e suspender</h3></div>
+        <button class="btn secondary sm" onclick="loadAdminPanel()">Atualizar</button>
       </div>
       <div id="adminOwnerNote" class="notice">Carregando permissoes...</div>
+      <div id="adminTools" class="panel" style="display:none;margin-bottom:16px;border-top:4px solid var(--green2);box-shadow:none">
+        <h3 style="font-size:16px">Gerenciar admins</h3>
+        <p style="font-size:13px;color:var(--soft);margin-bottom:10px">Apenas o owner adiciona ou remove admins. Admins aprovam e suspendem veterinarios.</p>
+        <div class="field"><label>Carteira do admin</label><input id="vetAdminAddress" autocomplete="off" placeholder="0x..."></div>
+        <div class="row">
+          <button class="btn sm" onclick="addVetAdmin()">Adicionar admin</button>
+          <button class="btn secondary sm" onclick="removeVetAdmin()">Remover admin</button>
+        </div>
+      </div>
       <h3 style="font-size:16px;margin:18px 0 10px">Solicitacoes pendentes</h3>
       <div id="pendingList"><div class="empty">Carregando...</div></div>
       <h3 style="font-size:16px;margin:22px 0 10px">Todos os veterinarios</h3>
@@ -272,7 +294,7 @@ nav{height:62px;background:var(--green);display:flex;align-items:center;padding:
   <section class="panel">
     <div class="field"><label>PetFactory</label><input id="factoryAddress"></div>
     <div class="field"><label>VetNFT</label><input id="vetNFTAddress"></div>
-    <div class="field"><label>VetGovernance - opcional, nao usado no fluxo padrao</label><input id="governanceAddress"></div>
+    <div class="field"><label>Geoapify API key - opcional</label><input id="geoapifyKey" autocomplete="off" placeholder="Cole sua chave da Geoapify"></div>
     <button class="btn" onclick="saveConfig()">Salvar e verificar contratos</button>
     <div id="contractStatus" style="margin-top:14px"></div>
   </section>
@@ -318,19 +340,22 @@ const PET_ABI = [
 ];
 
 const VET_ABI = [
-  "function registerVet(string nome, string crmv, string cidade, string bairro, string telefone)",
+  "function registerVet(string nome, string crmv)",
   "function approveVet(address vetAddress)",
-  "function deactivateVet(address vetAddress)",
+  "function suspendVet(address vetAddress)",
+  "function reactivateVet(address vetAddress)",
+  "function addAdmin(address admin)",
+  "function removeAdmin(address admin)",
+  "function isAdmin(address addr) view returns (bool)",
   "function setPrices(uint256 consultaPrice, uint256 diariaInternacaoPrice)",
-  "function atualizarTelefone(string novoTelefone)",
   "function isVetActive(address vetAddress) view returns (bool)",
   "function hasNFT(address vetAddress) view returns (bool)",
   "function owner() view returns (address)",
   "function ownerOf(uint256 tokenId) view returns (address)",
-  "function getVet(address vetAddress) view returns (tuple(string nome, string crmv, string cidade, string bairro, string telefone, uint256 consultaPrice, uint256 diariaInternacaoPrice, bool ativo, uint256 tokenId))",
+  "function getVet(address vetAddress) view returns (tuple(string nome, string crmv, uint256 consultaPrice, uint256 diariaInternacaoPrice, uint8 status, uint256 tokenId))",
   "function getVetPrice(address vetAddress, uint8 tipo, uint256 diasInternacao) view returns (uint256)",
   "function getAllVets() view returns (address[])",
-  "event VetSolicitado(address indexed vet, string crmv, string cidade, string bairro, string telefone)"
+  "event VetSolicitado(address indexed vet, string nome, string crmv)"
 ];
 
 let provider, signer, account;
@@ -341,6 +366,7 @@ let currentPetAddr = "";
 let ethBrl = 0;
 let vetOwner = "";
 let isOwner = false;
+let isAdminAccount = false;
 let shownVets = {};
 
 function shortAddr(a){ return (!a||a===ZERO) ? "-" : a.slice(0,6)+"..."+a.slice(-4) }
@@ -406,6 +432,154 @@ async function loadVaccineAlert(petAddr, consultaId){
   }
 }
 
+function blankVetLocation(){
+  return {
+    telefone: "",
+    cep: "",
+    formatted_address: "",
+    cidade: "",
+    bairro: "",
+    estado: "",
+    pais: "",
+    lat: null,
+    lon: null,
+    geoapify_place_id: ""
+  };
+}
+async function loadVetLocations(addrs){
+  const map = {};
+  const keys = (addrs || []).map(photoKey).filter(Boolean);
+  if(!keys.length) return map;
+  try{
+    const { data, error } = await supabaseClient
+      .from("vet_locations")
+      .select("vet_wallet,telefone,cep,formatted_address,cidade,bairro,estado,pais,lat,lon,geoapify_place_id")
+      .in("vet_wallet", keys);
+    if(error) throw error;
+    for(const row of data || []) map[photoKey(row.vet_wallet)] = row;
+  }catch(e){
+    console.warn("Nao foi possivel carregar localizacao dos vets", e);
+  }
+  return map;
+}
+async function loadVetLocation(addr){
+  try{
+    const { data, error } = await supabaseClient
+      .from("vet_locations")
+      .select("telefone,cep,formatted_address,cidade,bairro,estado,pais,lat,lon,geoapify_place_id")
+      .eq("vet_wallet", photoKey(addr))
+      .maybeSingle();
+    if(error) throw error;
+    return data || blankVetLocation();
+  }catch(_){
+    return blankVetLocation();
+  }
+}
+function fillVetLocationForm(loc){
+  loc = loc || blankVetLocation();
+  const set = (id, value) => { const el = document.getElementById(id); if(el) el.value = value || ""; };
+  set("vetTelefone", loc.telefone);
+  set("vetCep", loc.cep);
+  set("vetEndereco", loc.formatted_address);
+  set("vetCidade", loc.cidade);
+  set("vetBairro", loc.bairro);
+  set("vetEstado", loc.estado);
+  set("vetPais", loc.pais || "Brasil");
+  set("vetLat", loc.lat);
+  set("vetLon", loc.lon);
+  set("vetGeoPlaceId", loc.geoapify_place_id);
+}
+function readVetLocationForm(){
+  const get = id => document.getElementById(id)?.value.trim() || "";
+  return {
+    telefone: get("vetTelefone"),
+    cep: get("vetCep"),
+    formatted_address: get("vetEndereco"),
+    cidade: get("vetCidade"),
+    bairro: get("vetBairro"),
+    estado: get("vetEstado"),
+    pais: get("vetPais") || "Brasil",
+    lat: get("vetLat") ? Number(get("vetLat")) : null,
+    lon: get("vetLon") ? Number(get("vetLon")) : null,
+    geoapify_place_id: get("vetGeoPlaceId")
+  };
+}
+async function renderMeuLocalizacaoVet(){
+  const el = document.getElementById("meuLocalVet");
+  if(!el || !account) return;
+  const loc = await loadVetLocation(account);
+  fillVetLocationForm(loc);
+  if(loc.telefone || loc.cidade || loc.bairro || loc.formatted_address){
+    el.style.display = "block";
+    el.style.background = "var(--mint)";
+    el.style.borderColor = "var(--mint-b)";
+    el.style.color = "var(--green2)";
+    el.innerHTML = `Contato/localizacao salvos: <b>${escapeHtml(loc.telefone || "-")}</b> · ${escapeHtml(loc.cidade || "-")}/${escapeHtml(loc.bairro || "-")}`;
+  }else{
+    el.style.display = "none";
+  }
+}
+async function saveVetLocationForm(){
+  await ensureConnected();
+  const loc = readVetLocationForm();
+  if(!loc.telefone){ toast("Telefone", "Informe o telefone publico.", "e"); return; }
+  if(!loc.cidade && !loc.formatted_address){ toast("Localizacao", "Informe cidade ou busque um endereco.", "e"); return; }
+  try{
+    const { error } = await supabaseClient.from("vet_locations").upsert({
+      vet_wallet: photoKey(account),
+      telefone: loc.telefone,
+      cep: loc.cep,
+      formatted_address: loc.formatted_address,
+      cidade: loc.cidade,
+      bairro: loc.bairro,
+      estado: loc.estado,
+      pais: loc.pais,
+      lat: loc.lat,
+      lon: loc.lon,
+      geoapify_place_id: loc.geoapify_place_id,
+      updated_at: new Date().toISOString()
+    }, { onConflict: "vet_wallet" });
+    if(error) throw error;
+    toast("Localizacao salva", "Dados comerciais salvos no Supabase.", "s");
+    await renderMeuLocalizacaoVet();
+    await reloadVets();
+  }catch(e){
+    toast("Erro no Supabase", e.message || "Nao foi possivel salvar vet_locations.", "e");
+  }
+}
+async function resolveVetAddress(){
+  const key = (config.geoapifyKey || "").trim();
+  if(!key){ toast("Geoapify", "Cole sua API key na aba Contratos.", "e"); return; }
+  const loc = readVetLocationForm();
+  const query = [loc.cep, loc.formatted_address, loc.cidade, loc.estado, "Brasil"].filter(Boolean).join(", ");
+  if(!query.trim()){ toast("Endereco", "Informe CEP ou endereco para buscar.", "e"); return; }
+  toast("Geoapify", "Buscando endereco...", "p");
+  try{
+    const url = "https://api.geoapify.com/v1/geocode/search?format=json&filter=countrycode:br&limit=1&text=" +
+      encodeURIComponent(query) + "&apiKey=" + encodeURIComponent(key);
+    const res = await fetch(url);
+    const json = await res.json();
+    if(!res.ok) throw new Error(json.message || "Erro na Geoapify.");
+    const r = json.results?.[0];
+    if(!r){ toast("Geoapify", "Nenhum endereco encontrado.", "e"); return; }
+    fillVetLocationForm({
+      telefone: loc.telefone,
+      cep: r.postcode || loc.cep,
+      formatted_address: r.formatted || loc.formatted_address,
+      cidade: r.city || r.county || loc.cidade,
+      bairro: r.suburb || r.district || r.neighbourhood || loc.bairro,
+      estado: r.state || loc.estado,
+      pais: r.country || "Brasil",
+      lat: r.lat,
+      lon: r.lon,
+      geoapify_place_id: r.place_id || ""
+    });
+    toast("Endereco encontrado", r.formatted || "Dados preenchidos.", "s");
+  }catch(e){
+    toast("Geoapify", e.message || "Nao foi possivel buscar endereco.", "e");
+  }
+}
+
 function niceError(e){
   if(!e) return "Erro desconhecido.";
   if(String(e.code)==="4001" || /user rejected|user denied/i.test(e.message||"")) return "Transacao recusada no MetaMask.";
@@ -420,6 +594,14 @@ function niceError(e){
     ["Apenas o veterinario", "Apenas o veterinario escolhido pode fazer isso."],
     ["Apenas vets com NFT", "Apenas veterinarios com NFT ativo podem fazer isso."],
     ["Pet falecido", "Esse pet faleceu - o historico esta encerrado."],
+    ["Apenas owner ou admin", "Apenas owner ou admin pode executar essa acao."],
+    ["Ja e admin", "Essa carteira ja e admin."],
+    ["Nao e admin", "Essa carteira nao e admin."],
+    ["Owner nao pode ser removido", "O owner nao pode ser removido dos admins."],
+    ["Credencial nao esta ativa", "Essa credencial nao esta ativa."],
+    ["Credencial nao esta suspensa", "Essa credencial nao esta suspensa."],
+    ["Carteira ja possui credencial", "Essa carteira ja possui credencial."],
+    ["Solicitacao ja existe", "Essa carteira ja tem uma solicitacao em aberto."],
     ["Vet invalido ou inativo", "Esse veterinario nao esta ativo."],
     ["Pai invalido", "O contrato do pai nao e um pet registrado nesta plataforma."],
     ["Mae invalida", "O contrato da mae nao e um pet registrado nesta plataforma."],
@@ -538,19 +720,16 @@ async function ensureConnected(){ if(!signer) await connect(); if(!signer) throw
 function loadConfigFields(){
   document.getElementById("factoryAddress").value = config.factoryAddress || "";
   document.getElementById("vetNFTAddress").value = config.vetNFTAddress || "";
-  document.getElementById("governanceAddress").value = config.governanceAddress || "";
+  const geo = document.getElementById("geoapifyKey"); if(geo) geo.value = config.geoapifyKey || "";
 }
 async function saveConfig(){
   const next = {
     factoryAddress: document.getElementById("factoryAddress").value.trim(),
     vetNFTAddress: document.getElementById("vetNFTAddress").value.trim(),
-    governanceAddress: document.getElementById("governanceAddress").value.trim()
+    geoapifyKey: document.getElementById("geoapifyKey")?.value.trim() || ""
   };
   if(!validAddress(next.factoryAddress) || !validAddress(next.vetNFTAddress)){
     toast("Enderecos invalidos","PetFactory e VetNFT precisam ser enderecos validos.","e"); return;
-  }
-  if(next.governanceAddress && !validAddress(next.governanceAddress)){
-    toast("Endereco invalido","VetGovernance precisa ser valido ou vazio.","e"); return;
   }
   const statusBox = document.getElementById("contractStatus");
   if(provider){
@@ -579,6 +758,7 @@ async function reloadAll(){
     await reloadVets();
     await updateSummary();
     renderMeuPerfilVet();
+    await renderMeuLocalizacaoVet();
     renderAdminNote();
     loadAdminPanel().catch(()=>{});
   }
@@ -588,7 +768,7 @@ async function updateSummary(){
   try{
     const factory = contract(config.factoryAddress, FACTORY_ABI);
     const pets = await factory.getPetsByOwner(account);
-    document.getElementById("summary").innerHTML = `<b style="font-size:22px">${pets.length}</b> pet(s) para ${shortAddr(account)}.` + (isOwner ? `<div class="badge ok" style="margin-top:8px">Voce e o admin do VetNFT</div>` : "");
+    document.getElementById("summary").innerHTML = `<b style="font-size:22px">${pets.length}</b> pet(s) para ${shortAddr(account)}.` + (isAdminAccount ? `<div class="badge ok" style="margin-top:8px">Voce e admin do VetNFT</div>` : "");
   }catch(e){ document.getElementById("summary").innerHTML = '<div class="empty">Nao foi possivel ler PetFactory.</div>'; }
 }
 async function detectOwner(){
@@ -596,19 +776,27 @@ async function detectOwner(){
     const vetNFT = contract(config.vetNFTAddress, VET_ABI);
     vetOwner = await vetNFT.owner();
     isOwner = eqAddr(vetOwner, account);
-  }catch(_){ vetOwner=""; isOwner=false; }
+    const adminFlag = await vetNFT.isAdmin(account).catch(()=>false);
+    isAdminAccount = isOwner || Boolean(adminFlag);
+  }catch(_){ vetOwner=""; isOwner=false; isAdminAccount=false; }
 }
 function renderAdminNote(){
   const el = document.getElementById("adminOwnerNote");
+  const tools = document.getElementById("adminTools");
+  if(tools) tools.style.display = isOwner ? "block" : "none";
   if(!el) return;
   if(isOwner){
     el.className = "notice";
     el.style.background = "var(--mint)"; el.style.borderColor = "var(--mint-b)"; el.style.color = "var(--green2)";
-    el.innerHTML = "Voce e o administrador (owner). Pode aprovar e revogar veterinarios.";
+    el.innerHTML = "Voce e o owner. Pode aprovar, suspender e gerenciar admins.";
+  }else if(isAdminAccount){
+    el.className = "notice";
+    el.style.background = "var(--mint)"; el.style.borderColor = "var(--mint-b)"; el.style.color = "var(--green2)";
+    el.innerHTML = `Voce e admin do VetNFT. Pode aprovar e suspender veterinarios. Owner: <b>${shortAddr(vetOwner)}</b>.`;
   }else{
     el.className = "notice";
     el.style.background = ""; el.style.borderColor = ""; el.style.color = "";
-    el.innerHTML = `Owner do VetNFT: <b>${shortAddr(vetOwner)}</b>. Apenas ele consegue aprovar/revogar.`;
+    el.innerHTML = `Owner do VetNFT: <b>${shortAddr(vetOwner)}</b>. Apenas owner/admin consegue aprovar ou suspender.`;
   }
 }
 
@@ -1126,31 +1314,13 @@ async function registerVetRequest(){
   await ensureConnected(); if(!requireConfig()) return;
   const nome=document.getElementById("vetName").value.trim();
   const crmv=document.getElementById("vetCrmv").value.trim();
-  const cidade=document.getElementById("vetCidade").value.trim();
-  const bairro=document.getElementById("vetBairro").value.trim();
-  const telefone=document.getElementById("vetTelefone").value.trim();
-  if(!nome||!crmv||!cidade||!bairro||!telefone){ toast("Campos obrigatorios","Preencha todos os campos.","e"); return; }
-  await runTx("Enviando solicitacao...", ()=>contract(config.vetNFTAddress,VET_ABI,true).registerVet(nome,crmv,cidade,bairro,telefone),
+  if(!nome||!crmv){ toast("Campos obrigatorios","Preencha nome profissional e CRMV.","e"); return; }
+  await runTx("Enviando solicitacao...", ()=>contract(config.vetNFTAddress,VET_ABI,true).registerVet(nome,crmv),
     "Solicitacao enviada","Aguarde a aprovacao do administrador.", ()=>{ renderMeuPerfilVet(); cacheVet(account); });
 }
 
 async function updateVetPhone(){
-  await ensureConnected();
-  if(!requireConfig()) return;
-  const telefone = document.getElementById("vetPhoneUpdate").value.trim();
-  if(!telefone){ toast("Telefone", "Informe o novo telefone publico.", "e"); return; }
-  await runTx(
-    "Atualizando telefone...",
-    ()=>contract(config.vetNFTAddress,VET_ABI,true).atualizarTelefone(telefone),
-    "Telefone atualizado",
-    "O contato publico do veterinario foi atualizado.",
-    async ()=>{
-      document.getElementById("vetTelefone").value = telefone;
-      document.getElementById("vetPhoneUpdate").value = "";
-      await reloadVets();
-      renderMeuPerfilVet();
-    }
-  );
+  await saveVetLocationForm();
 }
 
 async function setVetPrices(){
@@ -1173,9 +1343,9 @@ async function renderMeuPerfilVet(){
     el.style.display="block";
     let estado;
     if(active) estado = "Ativo (NFT #" + v.tokenId + ")";
-    else if(has) estado = "NFT mintado, mas inativo (revogado)";
+    else if(has) estado = "NFT mintado, mas suspenso";
     else estado = "Pendente - aguardando aprovacao do administrador";
-    el.innerHTML = `Seu cadastro: <b>${escapeHtml(v.nome)}</b> · CRMV ${escapeHtml(v.crmv)} · Telefone ${escapeHtml(v.telefone || "-")} · <b>${estado}</b>`;
+    el.innerHTML = `Credencial on-chain: <b>${escapeHtml(v.nome)}</b> · CRMV ${escapeHtml(v.crmv)} · <b>${estado}</b>`;
   }catch(_){ el.style.display="none"; }
 }
 
@@ -1210,34 +1380,38 @@ async function reloadVets(){
   try{
     const vetNFT = contract(config.vetNFTAddress, VET_ABI);
     const addresses = await vetNFT.getAllVets();
+    const locMap = await loadVetLocations(addresses);
     allVets = [];
     for(const addr of addresses){
       try{
         const [v, active] = await Promise.all([vetNFT.getVet(addr), vetNFT.isVetActive(addr)]);
         cacheVet(addr);
-        if(active) allVets.push({ addr, v });
+        if(active) allVets.push({ addr, v, loc: locMap[photoKey(addr)] || blankVetLocation() });
       }catch(_){}
     }
     renderVetSearch();
   }catch(e){ if(list) list.innerHTML='<div class="empty">Nao foi possivel ler o VetNFT.</div>'; toast("Erro",niceError(e),"e"); }
 }
 
-function vetCardHtml(addr, v, active){
-  shownVets[addr] = { v, active };
+function vetCardHtml(addr, v, active, loc){
+  loc = loc || blankVetLocation();
+  shownVets[addr] = { v, active, loc };
   const cBrl = weiToBrl(v.consultaPrice), dBrl = weiToBrl(v.diariaInternacaoPrice);
   const cStr = cBrl ? `R$ ${cBrl}` : `${toEth(v.consultaPrice)} ETH`;
   const dStr = dBrl ? `R$ ${dBrl}` : `${toEth(v.diariaInternacaoPrice)} ETH`;
   const ini = (v.nome||"VT").trim().slice(0,2).toUpperCase();
   const nome = escapeHtml(v.nome||"Sem cadastro");
+  const local = [loc.cidade, loc.bairro].filter(Boolean).join("/") || "Localizacao nao informada";
+  const tel = loc.telefone || "-";
   return `
     <div class="vetrow" id="row-${addr}" onclick="openVetDetail('${addr}')">
       <div class="vethead">
         <div class="vetav">${escapeHtml(ini)}</div>
         <div class="vetinfo">
-          <div class="vetname">${nome}<span class="st ${active?"a":"i"}">${active?"Ativo":"Inativo"}</span></div>
+          <div class="vetname">${nome}<span class="st ${active?"a":"i"}">${active?"Ativo":"Suspenso"}</span></div>
           <div class="vetsub">
-            CRMV ${escapeHtml(v.crmv||"-")} · ${escapeHtml(v.cidade||"Cidade?")}/${escapeHtml(v.bairro||"Bairro?")}<br>
-            Tel ${escapeHtml(v.telefone||"-")} · NFT #${v.tokenId}
+            CRMV ${escapeHtml(v.crmv||"-")} · ${escapeHtml(local)}<br>
+            Tel ${escapeHtml(tel)} · NFT #${v.tokenId}
           </div>
         </div>
         <div class="vetprice">${cStr}<small>Diaria ${dStr}</small></div>
@@ -1248,7 +1422,7 @@ function vetCardHtml(addr, v, active){
 function openVetDetail(addr, target){
   const data = shownVets[addr];
   if(!data) return;
-  const { v, active } = data;
+  const { v, active, loc } = data;
   document.querySelectorAll(".vetrow").forEach(r=>r.classList.remove("sel"));
   document.getElementById("row-"+addr)?.classList.add("sel");
   const cBrl = weiToBrl(v.consultaPrice), dBrl = weiToBrl(v.diariaInternacaoPrice);
@@ -1259,17 +1433,18 @@ function openVetDetail(addr, target){
   box.innerHTML = `
     <div class="vetdetail">
       <div class="dt-name">${escapeHtml(v.nome||"Sem cadastro")}
-        <span class="badge ${active?"ok":"dead"}">${active?"Ativo":"Inativo"}</span>
+        <span class="badge ${active?"ok":"dead"}">${active?"Ativo":"Suspenso"}</span>
         <span class="badge warn">NFT #${v.tokenId}</span>
       </div>
       <div class="det">
         <div><small>CRMV</small><b>${escapeHtml(v.crmv||"-")}</b></div>
-        <div><small>Telefone</small><b>${escapeHtml(v.telefone||"-")}</b></div>
-        <div><small>Cidade</small><b>${escapeHtml(v.cidade||"-")}</b></div>
-        <div><small>Bairro</small><b>${escapeHtml(v.bairro||"-")}</b></div>
+        <div><small>Telefone</small><b>${escapeHtml(loc?.telefone||"-")}</b></div>
+        <div><small>Cidade</small><b>${escapeHtml(loc?.cidade||"-")}</b></div>
+        <div><small>Bairro</small><b>${escapeHtml(loc?.bairro||"-")}</b></div>
         <div><small>Consulta</small><b>${cStr}</b></div>
         <div><small>Diaria internacao</small><b>${dStr}</b></div>
       </div>
+      ${loc?.formatted_address ? `<div class="public">${escapeHtml(loc.formatted_address)}</div>` : ""}
       <div class="mono">Carteira: ${addr}</div>
       <button class="btn" style="margin-top:12px" onclick="selectVetForService('${addr}')">Selecionar para atendimento</button>
     </div>`;
@@ -1281,11 +1456,16 @@ function renderVetSearch(){
   if(!list) return;
   const cidadeBusca = (document.getElementById("vetSearchCidade")?.value||"").trim().toLowerCase();
   const bairroBusca = (document.getElementById("vetSearchBairro")?.value||"").trim().toLowerCase();
-  const filtered = allVets.filter(({v})=>{
-    const cidade = String(v.cidade||"").toLowerCase(), bairro = String(v.bairro||"").toLowerCase();
-    return (!cidadeBusca || cidade.includes(cidadeBusca)) && (!bairroBusca || bairro.includes(bairroBusca));
+  const cepBusca = (document.getElementById("vetSearchCep")?.value||"").replace(/\D/g,"");
+  const filtered = allVets.filter(({loc})=>{
+    const cidade = String(loc?.cidade||"").toLowerCase();
+    const bairro = String(loc?.bairro||"").toLowerCase();
+    const cep = String(loc?.cep||"").replace(/\D/g,"");
+    return (!cidadeBusca || cidade.includes(cidadeBusca)) &&
+      (!bairroBusca || bairro.includes(bairroBusca)) &&
+      (!cepBusca || cep.includes(cepBusca));
   });
-  list.innerHTML = filtered.map(({addr,v})=>vetCardHtml(addr,v,true)).join("") || '<div class="empty">Nenhum veterinario encontrado.</div>';
+  list.innerHTML = filtered.map(({addr,v,loc})=>vetCardHtml(addr,v,true,loc)).join("") || '<div class="empty">Nenhum veterinario encontrado.</div>';
 }
 
 function selectVetForService(addr){
@@ -1303,8 +1483,8 @@ async function searchByTokenId(){
   try{
     const vetNFT = contract(config.vetNFTAddress, VET_ABI);
     const addr = await vetNFT.ownerOf(tokenId);
-    const [v, active] = await Promise.all([vetNFT.getVet(addr), vetNFT.isVetActive(addr)]);
-    out.innerHTML = vetCardHtml(addr, v, active) + '<div id="tokenDetailPanel"></div>';
+    const [v, active, loc] = await Promise.all([vetNFT.getVet(addr), vetNFT.isVetActive(addr), loadVetLocation(addr)]);
+    out.innerHTML = vetCardHtml(addr, v, active, loc) + '<div id="tokenDetailPanel"></div>';
     openVetDetail(addr, "tokenDetailPanel");
   }catch(e){ out.innerHTML='<div class="empty">Nenhum NFT encontrado com esse tokenId.</div>'; }
 }
@@ -1321,32 +1501,37 @@ async function loadAdminPanel(){
   let mintados = [];
   try{
     const addrs = await vetNFT.getAllVets();
+    const locMap = await loadVetLocations(addrs);
     for(const addr of addrs){
       try{
         const [v, active] = await Promise.all([vetNFT.getVet(addr), vetNFT.isVetActive(addr)]);
         cacheVet(addr);
-        mintados.push({ addr, v, active });
+        mintados.push({ addr, v, active, loc: locMap[photoKey(addr)] || blankVetLocation() });
       }catch(_){}
     }
   }catch(e){
     mintBox.innerHTML = '<div class="empty">Nao foi possivel ler getAllVets do VetNFT.</div>';
   }
-  mintBox.innerHTML = mintados.length ? mintados.map(({addr,v,active})=>{
+  mintBox.innerHTML = mintados.length ? mintados.map(({addr,v,active,loc})=>{
     const cBrl = weiToBrl(v.consultaPrice), dBrl = weiToBrl(v.diariaInternacaoPrice);
     const cStr = cBrl ? `R$ ${cBrl}` : `${toEth(v.consultaPrice)} ETH`;
     const dStr = dBrl ? `R$ ${dBrl}` : `${toEth(v.diariaInternacaoPrice)} ETH`;
     return `
     <div class="card">
       <div class="name">${escapeHtml(v.nome||"Sem nome")} <span class="badge warn">NFT #${v.tokenId}</span></div>
-      <div class="meta">${escapeHtml(v.cidade||"")} / ${escapeHtml(v.bairro||"")} - ${escapeHtml(v.crmv||"")}</div>
+      <div class="meta">${escapeHtml(loc?.cidade||"")} / ${escapeHtml(loc?.bairro||"")} - CRMV ${escapeHtml(v.crmv||"")}</div>
       <div class="badges">
-        <span class="badge ${active?"ok":"dead"}">${active?"Ativo":"Revogado"}</span>
+        <span class="badge ${active?"ok":"dead"}">${active?"Ativo":"Suspenso"}</span>
         <span class="badge warn">Consulta: ${cStr}</span>
         <span class="badge ok">Diaria: ${dStr}</span>
       </div>
-      <div class="mono">Telefone: ${escapeHtml(v.telefone||"Nao informado")}<br>Carteira: ${addr}</div>
+      <div class="mono">Telefone: ${escapeHtml(loc?.telefone||"Nao informado")}<br>Carteira: ${addr}</div>
       <div class="row" style="margin-top:10px">
-        ${active ? `<button class="btn danger sm" onclick="revokeVet('${addr}')">Revogar NFT</button>` : `<span class="badge dead">Revogado permanentemente</span>`}
+        ${
+          active
+            ? (isAdminAccount ? `<button class="btn danger sm" onclick="suspendVetCredential('${addr}')">Suspender NFT</button>` : `<span class="badge warn">Somente admin suspende</span>`)
+            : (isAdminAccount ? `<button class="btn sm" onclick="reactivateVetCredential('${addr}')">Reativar NFT</button>` : `<span class="badge dead">Suspenso</span>`)
+        }
       </div>
     </div>`;
   }).join("") : '<div class="empty">Nenhum veterinario com NFT ainda. Quando alguem for aprovado, aparece aqui.</div>';
@@ -1384,25 +1569,67 @@ async function loadAdminPanel(){
   pendBox.innerHTML = pendentes.length ? pendentes.map(({addr,v})=>`
     <div class="card">
       <div class="name">${escapeHtml(v.nome||"Sem nome")}</div>
-      <div class="meta">${escapeHtml(v.cidade||"")} / ${escapeHtml(v.bairro||"")} - ${escapeHtml(v.crmv||"")}</div>
-      <div class="mono">Telefone: ${escapeHtml(v.telefone||"Nao informado")}<br>Carteira: ${addr}</div>
+      <div class="meta">CRMV ${escapeHtml(v.crmv||"")}</div>
+      <div class="mono">Carteira: ${addr}</div>
       <div class="row" style="margin-top:10px">
-        <button class="btn sm" onclick="approveVet('${addr}')">Aprovar e mintar NFT</button>
+        ${isAdminAccount ? `<button class="btn sm" onclick="approveVet('${addr}')">Aprovar e mintar NFT</button>` : `<span class="badge warn">Somente admin aprova</span>`}
         <button class="btn secondary sm" onclick="ignoreVet('${addr}')">Ignorar</button>
       </div>
     </div>`).join("") : '<div class="empty">Nenhuma solicitacao pendente.</div>';
 }
 
+function readVetAdminAddress(){
+  return document.getElementById("vetAdminAddress")?.value.trim() || "";
+}
+async function addVetAdmin(){
+  await ensureConnected();
+  if(!isOwner){ toast("Admin", "Apenas o owner pode adicionar admins.", "e"); return; }
+  const addr = readVetAdminAddress();
+  if(!validAddress(addr)){ toast("Endereco invalido", "Cole uma carteira valida para admin.", "e"); return; }
+  await runTx(
+    "Adicionando admin...",
+    ()=>contract(config.vetNFTAddress,VET_ABI,true).addAdmin(addr),
+    "Admin adicionado",
+    shortAddr(addr),
+    async()=>{ document.getElementById("vetAdminAddress").value = ""; await detectOwner(); renderAdminNote(); }
+  );
+}
+async function removeVetAdmin(){
+  await ensureConnected();
+  if(!isOwner){ toast("Admin", "Apenas o owner pode remover admins.", "e"); return; }
+  const addr = readVetAdminAddress();
+  if(!validAddress(addr)){ toast("Endereco invalido", "Cole uma carteira valida para remover.", "e"); return; }
+  await runTx(
+    "Removendo admin...",
+    ()=>contract(config.vetNFTAddress,VET_ABI,true).removeAdmin(addr),
+    "Admin removido",
+    shortAddr(addr),
+    async()=>{ document.getElementById("vetAdminAddress").value = ""; await detectOwner(); renderAdminNote(); }
+  );
+}
 async function approveVet(addr){
   await ensureConnected();
+  if(!isAdminAccount){ toast("Permissao", "Apenas owner/admin pode aprovar.", "e"); return; }
   await runTx("Aprovando e mintando NFT...", ()=>contract(config.vetNFTAddress,VET_ABI,true).approveVet(addr),
     "Veterinario aprovado","NFT mintado.", async()=>{ await loadAdminPanel(); await reloadVets(); });
 }
-async function revokeVet(addr){
+async function suspendVetCredential(addr){
   await ensureConnected();
-  if(!confirm("Revogar e PERMANENTE. O veterinario perde a credencial para sempre e so podera voltar com um endereco novo. Confirmar?")) return;
-  await runTx("Revogando credencial...", ()=>contract(config.vetNFTAddress,VET_ABI,true).deactivateVet(addr),
-    "Veterinario revogado","A credencial foi desativada permanentemente.", async()=>{ await loadAdminPanel(); await reloadVets(); });
+  if(!isAdminAccount){ toast("Permissao", "Apenas owner/admin pode suspender.", "e"); return; }
+  if(!confirm("Suspender esta credencial? O veterinario perde o status ativo nesta carteira.")) return;
+  await runTx("Suspendendo credencial...", ()=>contract(config.vetNFTAddress,VET_ABI,true).suspendVet(addr),
+    "Veterinario suspenso","A credencial foi suspensa.", async()=>{ await loadAdminPanel(); await reloadVets(); });
+}
+async function reactivateVetCredential(addr){
+  await ensureConnected();
+  if(!isAdminAccount){ toast("Permissao", "Apenas owner/admin pode reativar.", "e"); return; }
+  await runTx(
+    "Reativando credencial...",
+    ()=>contract(config.vetNFTAddress,VET_ABI,true).reactivateVet(addr),
+    "Veterinario reativado",
+    "A credencial voltou a ficar ativa.",
+    async()=>{ await loadAdminPanel(); await reloadVets(); }
+  );
 }
 
 loadConfigFields();
@@ -1415,4 +1642,3 @@ if(window.ethereum){
 </script>
 </body>
 </html>
-
