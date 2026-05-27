@@ -62,6 +62,7 @@ nav{height:62px;background:var(--green);display:flex;align-items:center;padding:
 .detail{background:white;border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);padding:22px;margin-bottom:16px;border-top:5px solid var(--green2)}
 .facts{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-top:18px}.fact{background:var(--bg);border-radius:8px;padding:11px}.fact small{display:block;color:var(--soft);font-size:11px;text-transform:uppercase}.fact b{display:block;margin-top:3px;overflow-wrap:anywhere}
 .history{padding:18px;margin-bottom:16px}.history h3{font-size:18px;margin-bottom:12px}.item{display:flex;gap:13px;padding:14px 0;border-top:1px solid var(--line)}.item:first-of-type{border-top:0}
+.item.click{cursor:pointer;border-radius:8px;padding-left:8px;padding-right:8px;transition:.15s}.item.click:hover{background:var(--bg)}.open-note{font-size:12px;font-weight:900;color:var(--green2);margin-top:8px}
 .dot{width:34px;height:34px;border-radius:50%;display:grid;place-items:center;flex:0 0 auto;font-weight:900}.dot.green{background:var(--mint);color:var(--green)}.dot.amber{background:var(--amber-bg);color:var(--amber)}.dot.red{background:var(--red-bg);color:var(--red)}
 .item-title{font-weight:900}.item-line{font-size:13px;color:var(--soft);margin-top:3px}.public{margin-top:8px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:9px 11px;font-size:13px;line-height:1.45}
 .status-tag{display:inline-block;font-size:11px;font-weight:800;border-radius:999px;padding:2px 8px;margin-left:6px}
@@ -83,6 +84,7 @@ nav{height:62px;background:var(--green);display:flex;align-items:center;padding:
 .vac-ok .vaccine-alert{color:var(--green2)}
 .vac-warn .vaccine-alert{color:var(--amber)}
 .vac-bad .vaccine-alert{color:var(--red)}
+.clinical-head{display:flex;align-items:flex-start;justify-content:space-between;gap:16px;flex-wrap:wrap;margin-bottom:16px}.clinical-head .name{font-size:26px}.clinical-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:12px}.clinical-readonly{background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;font-size:13px}.clinical-readonly small{display:block;color:var(--soft);font-size:10px;text-transform:uppercase;font-weight:900;margin-bottom:3px}.exam-row{display:flex;align-items:center;justify-content:space-between;gap:12px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin-top:8px}.exam-row b{overflow-wrap:anywhere}.exam-row a{white-space:nowrap;text-decoration:none}.clinical-locked{background:var(--amber-bg);border:1px solid #f5c97a;color:#6f3d00;border-radius:8px;padding:10px 12px;font-size:13px;margin-bottom:12px}
 .preco-ref{margin-top:6px;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 11px;font-size:13px}.preco-ref .eth{font-weight:700;color:var(--text)}.preco-ref .brl{color:var(--green2);font-weight:800;margin-left:6px}
 .memorial{background:linear-gradient(135deg,var(--green),var(--green2));color:white;border-radius:var(--r);padding:22px;margin-bottom:16px}.memorial h3{font-size:21px;margin-bottom:10px}.memorial p{line-height:1.7;color:rgba(255,255,255,.88)}.memorial small{display:block;margin-top:13px;color:rgba(255,255,255,.58);font-family:monospace;overflow-wrap:anywhere}
 .vetrow{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);margin-bottom:10px;overflow:hidden;transition:.15s;cursor:pointer}
@@ -114,7 +116,7 @@ nav{height:62px;background:var(--green);display:flex;align-items:center;padding:
 .le{font-size:12px;white-space:nowrap;padding:3px 10px;border-radius:20px;background:rgba(255,255,255,.12)}
 .le.s{background:rgba(141,215,170,.25);color:#cdEFD9}.le.e{background:rgba(184,58,46,.4);color:#ffd9d4}.le.p{background:rgba(201,106,0,.3);color:#ffe0b8}
 @media(max-width:1000px){.home-pets{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:820px){nav{padding:0 12px;gap:6px}.logo{font-size:18px}.wallet{display:none}.page{padding:18px}.grid,.cols,.facts,.home-pets{grid-template-columns:1fr}.head,.home-top{align-items:flex-start;flex-direction:column}.brand-name{font-size:38px}.brand-icon{width:88px;height:88px}.brand-tag{font-size:16px}.brand-tag:before,.brand-tag:after{width:34px}.featured-pet img,.featured-empty,.mini-pet img,.mini-empty{height:210px}#toasts{left:12px;right:12px;top:70px}.toast{max-width:none}}
+@media(max-width:820px){nav{padding:0 12px;gap:6px}.logo{font-size:18px}.wallet{display:none}.page{padding:18px}.grid,.cols,.facts,.home-pets,.clinical-grid{grid-template-columns:1fr}.head,.home-top{align-items:flex-start;flex-direction:column}.brand-name{font-size:38px}.brand-icon{width:88px;height:88px}.brand-tag{font-size:16px}.brand-tag:before,.brand-tag:after{width:34px}.featured-pet img,.featured-empty,.mini-pet img,.mini-empty{height:210px}#toasts{left:12px;right:12px;top:70px}.toast{max-width:none}}
 @media(max-width:820px){.photo-head{grid-template-columns:1fr}.photo-head img{width:100%;max-width:220px}}
 </style>
 </head>
@@ -189,6 +191,10 @@ nav{height:62px;background:var(--green);display:flex;align-items:center;padding:
   <section id="petDetailView" style="display:none">
     <button class="back" onclick="hidePet()">← Voltar</button>
     <div id="petDetail"></div>
+  </section>
+  <section id="serviceDetailView" style="display:none">
+    <button class="back" onclick="hideServiceDetail()">Voltar ao pet</button>
+    <div id="serviceDetail"></div>
   </section>
 </main>
 
@@ -281,6 +287,12 @@ nav{height:62px;background:var(--green);display:flex;align-items:center;padding:
           <button class="btn secondary sm" onclick="removeVetAdmin()">Remover admin</button>
         </div>
       </div>
+      <div id="pendingApproveTools" class="panel" style="display:none;margin-bottom:16px;border-top:4px solid var(--amber);box-shadow:none">
+        <h3 style="font-size:16px">Aprovar carteira pendente</h3>
+        <p style="font-size:13px;color:var(--soft);margin-bottom:10px">Use se a solicitacao nao aparecer automaticamente na lista.</p>
+        <div class="field"><label>Carteira do veterinario</label><input id="pendingVetAddress" autocomplete="off" placeholder="0x..."></div>
+        <button class="btn sm" onclick="approveVetManual()">Aprovar esta carteira</button>
+      </div>
       <h3 style="font-size:16px;margin:18px 0 10px">Solicitacoes pendentes</h3>
       <div id="pendingList"><div class="empty">Carregando...</div></div>
       <h3 style="font-size:16px;margin:22px 0 10px">Todos os veterinarios</h3>
@@ -363,6 +375,8 @@ let config = JSON.parse(localStorage.getItem("petgree.config") || "{}");
 let allVets = [];
 let selectedVet = localStorage.getItem("petgree.selectedVet") || "";
 let currentPetAddr = "";
+let currentServiceId = "";
+let currentServiceData = null;
 let ethBrl = 0;
 let vetOwner = "";
 let isOwner = false;
@@ -429,6 +443,135 @@ async function loadVaccineAlert(petAddr, consultaId){
     return data;
   }catch(_){
     return null;
+  }
+}
+
+function cleanFileName(name){
+  const safe = String(name || "exame")
+    .replace(/[^a-zA-Z0-9._-]/g, "_")
+    .replace(/_+/g, "_")
+    .slice(0, 90);
+  return safe || "exame";
+}
+
+async function loadClinicalRecord(petAddr, consultaId){
+  try{
+    const { data, error } = await supabaseClient
+      .from("pet_clinical_records")
+      .select("*")
+      .eq("pet_contract", photoKey(petAddr))
+      .eq("consulta_id", String(consultaId))
+      .order("updated_at", { ascending:false })
+      .limit(1)
+      .maybeSingle();
+    if(error) throw error;
+    return data;
+  }catch(e){
+    console.warn("Nao foi possivel carregar prontuario clinico", e);
+    return null;
+  }
+}
+
+async function loadExamFiles(petAddr, consultaId){
+  try{
+    const { data, error } = await supabaseClient
+      .from("pet_exam_files")
+      .select("*")
+      .eq("pet_contract", photoKey(petAddr))
+      .eq("consulta_id", String(consultaId))
+      .order("created_at", { ascending:false });
+    if(error) throw error;
+    return data || [];
+  }catch(e){
+    console.warn("Nao foi possivel carregar exames", e);
+    return [];
+  }
+}
+
+async function saveClinicalRecord(){
+  await ensureConnected();
+  if(!currentPetAddr || !currentServiceId || !currentServiceData){
+    toast("Prontuario", "Abra uma consulta ou internacao primeiro.", "e");
+    return;
+  }
+  if(!eqAddr(account, currentServiceData.vet)){
+    toast("Prontuario", "Apenas o veterinario deste atendimento pode editar.", "e");
+    return;
+  }
+
+  const payload = {
+    pet_contract: photoKey(currentPetAddr),
+    consulta_id: String(currentServiceId),
+    vet_wallet: photoKey(account),
+    record_type: currentServiceData.typeName,
+    diagnostico: document.getElementById("clinicalDiagnostico")?.value.trim() || "",
+    tratamento: document.getElementById("clinicalTratamento")?.value.trim() || "",
+    medicamentos: document.getElementById("clinicalMedicamentos")?.value.trim() || "",
+    observacoes: document.getElementById("clinicalObservacoes")?.value.trim() || "",
+    updated_at: new Date().toISOString()
+  };
+
+  try{
+    const existing = await loadClinicalRecord(currentPetAddr, currentServiceId);
+    let result;
+    if(existing?.id){
+      result = await supabaseClient.from("pet_clinical_records").update(payload).eq("id", existing.id);
+    }else{
+      result = await supabaseClient.from("pet_clinical_records").insert(payload);
+    }
+    if(result.error) throw result.error;
+    toast("Prontuario salvo", "Dados clinicos salvos no Supabase.", "s");
+    await showServiceDetail(currentPetAddr, currentServiceId);
+  }catch(e){
+    toast("Erro no prontuario", e.message || "Confira a tabela pet_clinical_records.", "e");
+  }
+}
+
+async function uploadExamFile(){
+  await ensureConnected();
+  if(!currentPetAddr || !currentServiceId || !currentServiceData){
+    toast("Exame", "Abra um atendimento primeiro.", "e");
+    return;
+  }
+  if(!eqAddr(account, currentServiceData.vet)){
+    toast("Exame", "Apenas o veterinario deste atendimento pode anexar exames.", "e");
+    return;
+  }
+
+  const file = document.getElementById("examFile")?.files?.[0];
+  if(!file){
+    toast("Exame", "Escolha um arquivo para enviar.", "e");
+    return;
+  }
+
+  const path = `exams/${photoKey(currentPetAddr)}/${String(currentServiceId)}/${Date.now()}-${cleanFileName(file.name)}`;
+  try{
+    toast("Enviando exame", "Salvando arquivo no Supabase...", "p");
+    const { error: uploadError } = await supabaseClient
+      .storage
+      .from("pet-exams")
+      .upload(path, file, { contentType: file.type || "application/octet-stream" });
+    if(uploadError) throw uploadError;
+
+    const { data: pub } = supabaseClient.storage.from("pet-exams").getPublicUrl(path);
+    const record = await loadClinicalRecord(currentPetAddr, currentServiceId);
+    const { error: dbError } = await supabaseClient
+      .from("pet_exam_files")
+      .insert({
+        pet_contract: photoKey(currentPetAddr),
+        consulta_id: String(currentServiceId),
+        clinical_record_id: record?.id || null,
+        file_name: file.name,
+        file_url: pub.publicUrl,
+        file_path: path,
+        file_type: file.type || "",
+        uploaded_by: photoKey(account)
+      });
+    if(dbError) throw dbError;
+    toast("Exame salvo", "Arquivo anexado ao atendimento.", "s");
+    await showServiceDetail(currentPetAddr, currentServiceId);
+  }catch(e){
+    toast("Erro no exame", e.message || "Confira a tabela pet_exam_files e o bucket pet-exams.", "e");
   }
 }
 
@@ -602,6 +745,7 @@ function niceError(e){
     ["Credencial nao esta suspensa", "Essa credencial nao esta suspensa."],
     ["Carteira ja possui credencial", "Essa carteira ja possui credencial."],
     ["Solicitacao ja existe", "Essa carteira ja tem uma solicitacao em aberto."],
+    ["Vet nao pendente", "Essa carteira nao tem uma solicitacao pendente."],
     ["Vet invalido ou inativo", "Esse veterinario nao esta ativo."],
     ["Pai invalido", "O contrato do pai nao e um pet registrado nesta plataforma."],
     ["Mae invalida", "O contrato da mae nao e um pet registrado nesta plataforma."],
@@ -783,7 +927,9 @@ async function detectOwner(){
 function renderAdminNote(){
   const el = document.getElementById("adminOwnerNote");
   const tools = document.getElementById("adminTools");
+  const pendingTools = document.getElementById("pendingApproveTools");
   if(tools) tools.style.display = isOwner ? "block" : "none";
+  if(pendingTools) pendingTools.style.display = isAdminAccount ? "block" : "none";
   if(!el) return;
   if(isOwner){
     el.className = "notice";
@@ -893,8 +1039,11 @@ async function renderHomePets(){
 
 async function showPet(addr){
   currentPetAddr = addr;
+  currentServiceId = "";
+  currentServiceData = null;
   document.getElementById("petsListView").style.display = "none";
   document.getElementById("petDetailView").style.display = "block";
+  document.getElementById("serviceDetailView").style.display = "none";
   const wrap = document.getElementById("petDetail");
   wrap.innerHTML = '<div class="empty">Carregando pet...</div>';
   try{
@@ -965,9 +1114,123 @@ async function showPet(addr){
 }
 function hidePet(){
   currentPetAddr = "";
+  currentServiceId = "";
+  currentServiceData = null;
   document.getElementById("petsListView").style.display = "block";
   document.getElementById("petDetailView").style.display = "none";
+  document.getElementById("serviceDetailView").style.display = "none";
   document.getElementById("petDetail").innerHTML = "";
+  document.getElementById("serviceDetail").innerHTML = "";
+}
+
+function hideServiceDetail(){
+  currentServiceId = "";
+  currentServiceData = null;
+  document.getElementById("serviceDetailView").style.display = "none";
+  document.getElementById("serviceDetail").innerHTML = "";
+  document.getElementById("petDetailView").style.display = "block";
+}
+
+async function showServiceDetail(petAddr, consultaId){
+  currentPetAddr = petAddr;
+  currentServiceId = String(consultaId);
+  document.getElementById("petsListView").style.display = "none";
+  document.getElementById("petDetailView").style.display = "none";
+  document.getElementById("serviceDetailView").style.display = "block";
+  const box = document.getElementById("serviceDetail");
+  box.innerHTML = '<div class="empty">Carregando atendimento...</div>';
+
+  try{
+    if(!provider && window.ethereum) provider = new ethers.BrowserProvider(window.ethereum);
+    if(!provider) throw new Error("Carteira nao conectada");
+
+    const pet = contract(petAddr, PET_ABI);
+    const consultas = Array.from(await pet.getConsultas());
+    const c = consultas.find(item => String(item.id) === currentServiceId);
+    if(!c) throw new Error("Atendimento nao encontrado");
+
+    const tipo = Number(c.tipo);
+    const typeName = TYPE_NAMES[tipo] || "Atendimento";
+    const statusNum = Number(c.status);
+    const statusLabel = statusNum === 0 ? "Aberta" : "Finalizada";
+    const statusClass = statusNum === 0 ? "aberta" : "finalizada";
+    const canEdit = account && eqAddr(account, c.vet);
+    const disabled = canEdit ? "" : "disabled";
+    const brl = (BigInt(c.preco) > 0n && ethBrl) ? weiToBrl(c.preco) : "";
+    const record = await loadClinicalRecord(petAddr, currentServiceId);
+    const exams = await loadExamFiles(petAddr, currentServiceId);
+
+    currentServiceData = {
+      vet: c.vet,
+      typeName,
+      tipo
+    };
+
+    const locked = canEdit ? "" : `
+      <div class="clinical-locked">
+        Visualizacao liberada. Para editar diagnostico, tratamento, medicamentos ou anexar exames,
+        conecte a carteira do veterinario deste atendimento.
+      </div>`;
+
+    const examHtml = exams.length ? exams.map(file => `
+      <div class="exam-row">
+        <div>
+          <b>${escapeHtml(file.file_name || "Exame")}</b>
+          <div class="meta">${escapeHtml(file.file_type || "arquivo")} - ${file.created_at ? new Date(file.created_at).toLocaleString("pt-BR") : ""}</div>
+        </div>
+        <a class="btn secondary sm" href="${escapeHtml(file.file_url || "#")}" target="_blank" rel="noopener">Abrir</a>
+      </div>`).join("") : '<div class="empty">Nenhum exame anexado ainda.</div>';
+
+    box.innerHTML = `
+      <div class="detail">
+        <div class="clinical-head">
+          <div>
+            <div class="name">${typeName} #${escapeHtml(currentServiceId)}</div>
+            <div class="meta">Vet ${shortAddr(c.vet)} - ${dateFromTs(c.data)}${Number(c.diasInternacao) ? " - " + Number(c.diasInternacao) + " diaria(s)" : ""}</div>
+            <div class="badges"><span class="status-tag ${statusClass}">${statusLabel}</span></div>
+          </div>
+          <div class="preco-ref" style="margin-top:0">Referencia: <span class="eth">${toEth(c.preco)} ETH</span>${brl ? `<span class="brl">R$ ${brl}</span>` : ""}</div>
+        </div>
+        <div class="facts">
+          <div class="fact"><small>Pet</small><b>${petAddr}</b></div>
+          <div class="fact"><small>Consulta</small><b>#${escapeHtml(currentServiceId)}</b></div>
+          <div class="fact"><small>Tipo</small><b>${typeName}</b></div>
+        </div>
+      </div>
+
+      <div class="panel" style="margin-bottom:16px;border-top:4px solid var(--green2)">
+        <h3>Prontuario clinico off-chain</h3>
+        <p style="font-size:13px;color:var(--soft);margin-bottom:12px">
+          Estes dados ficam no Supabase. O registro publico on-chain continua sendo o historico verificavel do pet.
+        </p>
+        ${locked}
+        <div class="clinical-grid">
+          <div class="field"><label>Diagnostico</label><textarea id="clinicalDiagnostico" ${disabled}>${escapeHtml(record?.diagnostico || "")}</textarea></div>
+          <div class="field"><label>Tratamento</label><textarea id="clinicalTratamento" ${disabled}>${escapeHtml(record?.tratamento || "")}</textarea></div>
+          <div class="field"><label>Medicamentos</label><textarea id="clinicalMedicamentos" ${disabled}>${escapeHtml(record?.medicamentos || "")}</textarea></div>
+          <div class="field"><label>Observacoes</label><textarea id="clinicalObservacoes" ${disabled}>${escapeHtml(record?.observacoes || "")}</textarea></div>
+        </div>
+        ${canEdit ? `<button class="btn" onclick="saveClinicalRecord()">Salvar prontuario</button>` : ""}
+      </div>
+
+      <div class="panel">
+        <h3>Exames anexados</h3>
+        <p style="font-size:13px;color:var(--soft);margin-bottom:12px">
+          Use para PDF, imagem, laudo ou outro arquivo do atendimento.
+        </p>
+        ${canEdit ? `
+          <div class="row" style="margin-bottom:12px">
+            <input id="examFile" type="file" accept="image/*,.pdf,.doc,.docx,.txt">
+            <button class="btn secondary sm" onclick="uploadExamFile()">Enviar exame</button>
+          </div>` : ""}
+        <div>${examHtml}</div>
+      </div>`;
+
+    box.scrollIntoView({ behavior:"smooth", block:"start" });
+  }catch(e){
+    box.innerHTML = '<div class="empty">Nao foi possivel abrir este atendimento.</div>';
+    toast("Erro", niceError(e), "e");
+  }
 }
 
 async function loadPetPhotos(addrs){
@@ -1086,12 +1349,15 @@ async function renderConsulta(c, petContract){
       </div>`;
   }
   const pendingVaccineNote = isVaccine && !c.registroPublico ? `<div class="public">Aguardando o veterinario registrar o nome da vacina aplicada.</div>` : "";
+  const consultaId = String(c.id);
+  const petAddr = currentPetAddr;
   return `
-    <div class="item"><div class="dot ${isVaccine?"amber":"green"}">${typeName[0]}</div>
+    <div class="item click" onclick="showServiceDetail('${petAddr}','${consultaId}')"><div class="dot ${isVaccine?"amber":"green"}">${typeName[0]}</div>
       <div style="flex:1">
         <div class="item-title">${typeName}<span class="status-tag ${statusClass}">${statusLabel}</span></div>
         <div class="item-line">Vet ${shortAddr(c.vet)} - ${dateFromTs(c.data)}${Number(c.diasInternacao)?" - "+c.diasInternacao+" diaria(s)":""}</div>
         ${precoHtml}${vacineHtml}${pendingVaccineNote}
+        <div class="open-note">Abrir ficha completa</div>
       </div></div>`;
 }
 
@@ -1316,7 +1582,7 @@ async function registerVetRequest(){
   const crmv=document.getElementById("vetCrmv").value.trim();
   if(!nome||!crmv){ toast("Campos obrigatorios","Preencha nome profissional e CRMV.","e"); return; }
   await runTx("Enviando solicitacao...", ()=>contract(config.vetNFTAddress,VET_ABI,true).registerVet(nome,crmv),
-    "Solicitacao enviada","Aguarde a aprovacao do administrador.", ()=>{ renderMeuPerfilVet(); cacheVet(account); });
+    "Solicitacao enviada","Aguarde a aprovacao do administrador.", async ()=>{ renderMeuPerfilVet(); cacheVet(account); rememberPendingVet(account); await loadAdminPanel(); });
 }
 
 async function updateVetPhone(){
@@ -1340,6 +1606,7 @@ async function renderMeuPerfilVet(){
     const vetNFT = contract(config.vetNFTAddress, VET_ABI);
     const [v, has, active] = await Promise.all([vetNFT.getVet(account), vetNFT.hasNFT(account), vetNFT.isVetActive(account)]);
     if(!v.nome){ el.style.display="none"; return; }
+    if(v.nome && !has) rememberPendingVet(account);
     el.style.display="block";
     let estado;
     if(active) estado = "Ativo (NFT #" + v.tokenId + ")";
@@ -1359,6 +1626,31 @@ function cacheVet(addr){
 }
 function getCachedVets(){
   try{ return JSON.parse(localStorage.getItem("petgree.knownVets") || "[]").filter(validAddress); }catch{ return []; }
+}
+function pendingVetKey(){
+  return "petgree.pendingVets." + photoKey(config.vetNFTAddress || "default");
+}
+function rememberPendingVet(addr){
+  if(!validAddress(addr)) return;
+  try{
+    const k = pendingVetKey();
+    const arr = JSON.parse(localStorage.getItem(k) || "[]");
+    if(!arr.map(a=>a.toLowerCase()).includes(addr.toLowerCase())){
+      arr.push(addr);
+      localStorage.setItem(k, JSON.stringify(arr));
+    }
+  }catch(_){}
+}
+function forgetPendingVet(addr){
+  if(!validAddress(addr)) return;
+  try{
+    const k = pendingVetKey();
+    const arr = JSON.parse(localStorage.getItem(k) || "[]").filter(a => !eqAddr(a, addr));
+    localStorage.setItem(k, JSON.stringify(arr));
+  }catch(_){}
+}
+function getRememberedPendingVets(){
+  try{ return JSON.parse(localStorage.getItem(pendingVetKey()) || "[]").filter(validAddress); }catch{ return []; }
 }
 function getIgnored(){
   try{ return JSON.parse(localStorage.getItem("petgree.ignoredVets") || "[]").map(a=>a.toLowerCase()); }catch{ return []; }
@@ -1537,7 +1829,10 @@ async function loadAdminPanel(){
   }).join("") : '<div class="empty">Nenhum veterinario com NFT ainda. Quando alguem for aprovado, aparece aqui.</div>';
 
   pendBox.innerHTML = '<div class="empty">Buscando solicitacoes pendentes...</div>';
-  const candidatos = new Set(getCachedVets().map(a=>a.toLowerCase()));
+  const candidatos = new Set([
+    ...getCachedVets(),
+    ...getRememberedPendingVets()
+  ].map(a=>a.toLowerCase()));
   if(account) candidatos.add(account.toLowerCase());
   try{
     const latest = await provider.getBlockNumber();
@@ -1611,7 +1906,15 @@ async function approveVet(addr){
   await ensureConnected();
   if(!isAdminAccount){ toast("Permissao", "Apenas owner/admin pode aprovar.", "e"); return; }
   await runTx("Aprovando e mintando NFT...", ()=>contract(config.vetNFTAddress,VET_ABI,true).approveVet(addr),
-    "Veterinario aprovado","NFT mintado.", async()=>{ await loadAdminPanel(); await reloadVets(); });
+    "Veterinario aprovado","NFT mintado.", async()=>{ forgetPendingVet(addr); await loadAdminPanel(); await reloadVets(); });
+}
+async function approveVetManual(){
+  const addr = document.getElementById("pendingVetAddress")?.value.trim() || "";
+  if(!validAddress(addr)){ toast("Endereco invalido", "Cole a carteira do veterinario pendente.", "e"); return; }
+  rememberPendingVet(addr);
+  await approveVet(addr);
+  const input = document.getElementById("pendingVetAddress");
+  if(input) input.value = "";
 }
 async function suspendVetCredential(addr){
   await ensureConnected();
@@ -1642,3 +1945,4 @@ if(window.ethereum){
 </script>
 </body>
 </html>
+
