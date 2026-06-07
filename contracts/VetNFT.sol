@@ -9,7 +9,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 /// @dev Contato/localizacao ficam off-chain via API/Supabase.
 ///      Suporta multiplos admins: cada aprovacao fica rastreavel on-chain
 ///      pelo msg.sender, garantindo responsabilizacao individual.
-///      Uma credencial pode ser suspensa; retorno exige nova carteira e nova aprovacao.
+///      Uma credencial pode ser suspensa e posteriormente reativada
+///      (via reactivateVet) pelo owner ou admin, mantendo a mesma carteira e o mesmo NFT.
 contract VetNFT is ERC721, Ownable {
 
     // ENUMS
@@ -205,7 +206,8 @@ contract VetNFT is ERC721, Ownable {
 
     /// @notice Owner ou admin suspende a credencial de um vet
     /// @dev O evento VetSuspenso inclui `suspensoPor` para rastreabilidade.
-    ///      A suspensao e permanente neste contrato (sem funcao de reativacao).
+    ///      A suspensao pode ser revertida posteriormente via reactivateVet,
+    ///      que devolve o status para ATIVA mantendo o mesmo NFT.
     function suspendVet(address vetAddress) external onlyOwnerOrAdmin {
         require(hasNFT[vetAddress], "Vet inexistente");
         require(
@@ -280,7 +282,11 @@ contract VetNFT is ERC721, Ownable {
     function getAllVets() external view returns (address[] memory) {
         return _vetList;
     }
-        
+        /// @notice Owner ou admin reativa a credencial de um vet suspenso
+    /// @dev Exige que o vet possua NFT e esteja com status SUSPENSA.
+    ///      Devolve o status para ATIVA sem mintar novo token (reaproveita o NFT existente).
+    /// @param vetAddress endereco do vet a ser reativado
+    function reactivateVet(address vetAddress) external onlyOwnerOrAdmin {
     function reactivateVet(address vetAddress) external onlyOwnerOrAdmin {
         require(hasNFT[vetAddress], "Vet inexistente");
         require(
