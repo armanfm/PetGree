@@ -263,7 +263,9 @@ event AdminRemovido(address indexed admin, address indexed removidoPor);
     }
 
     // VIEWS
-
+/// @notice Verifica se um vet esta ativo (tem NFT e status ATIVA)
+/// @param vetAddress endereco do vet
+/// @return true se o vet possui credencial ativa
     function isVetActive(address vetAddress) external view returns (bool) {
         return hasNFT[vetAddress] &&
                vets[vetAddress].status == StatusCredencial.ATIVA;
