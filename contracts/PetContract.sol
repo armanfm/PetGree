@@ -75,10 +75,12 @@ Atestado[] public atestados;
 
 uint256 private _consultaCounter; // contador incremental dos ids de consulta
 
-    // CHAINLINK
+// CHAINLINK
 
-    AggregatorV3Interface public ethUsdFeed; // feed de preco ETH/USD
-    AggregatorV3Interface public brlUsdFeed;  // feed de preco BRL/USD (opcional em redes de teste)
+/// @notice Feed Chainlink de preco ETH/USD
+AggregatorV3Interface public ethUsdFeed;
+/// @notice Feed Chainlink de preco BRL/USD (opcional em redes de teste)
+AggregatorV3Interface public brlUsdFeed;
 
     // EVENTS
 
