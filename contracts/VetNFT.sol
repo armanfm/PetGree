@@ -49,14 +49,25 @@ contract VetNFT is ERC721, Ownable {
     mapping(address => bool) public hasNFT;
     address[] private _vetList;
 
-    // EVENTS
+// EVENTS
 
-    event VetSolicitado(address indexed vet, string nome, string crmv);
-    event VetRegistrado(address indexed vet, string nome, string crmv, uint256 tokenId, address indexed aprovadoPor);
-    event VetSuspenso(address indexed vet, string crmv, uint256 tokenId, address indexed suspensoPor);
-    event PrecosAtualizados(address indexed vet, uint256 consultaPrice, uint256 diariaInternacaoPrice);
-    event AdminAdicionado(address indexed admin, address indexed adicionadoPor);
-    event AdminRemovido(address indexed admin, address indexed removidoPor);
+/// @notice Emitido quando um veterinario solicita cadastro (status PENDENTE)
+event VetSolicitado(address indexed vet, string nome, string crmv);
+
+/// @notice Emitido quando um vet e aprovado e o NFT e mintado
+event VetRegistrado(address indexed vet, string nome, string crmv, uint256 tokenId, address indexed aprovadoPor);
+
+/// @notice Emitido quando a credencial de um vet e suspensa
+event VetSuspenso(address indexed vet, string crmv, uint256 tokenId, address indexed suspensoPor);
+
+/// @notice Emitido quando um vet ativo atualiza seus precos
+event PrecosAtualizados(address indexed vet, uint256 consultaPrice, uint256 diariaInternacaoPrice);
+
+/// @notice Emitido quando um novo admin e adicionado
+event AdminAdicionado(address indexed admin, address indexed adicionadoPor);
+
+/// @notice Emitido quando um admin e removido
+event AdminRemovido(address indexed admin, address indexed removidoPor);
 
     // CONSTRUCTOR
 
