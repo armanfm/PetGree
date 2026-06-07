@@ -47,17 +47,24 @@ contract PetContract {
         uint256 dataRegistro; // timestamp em que o memorial foi registrado on-chain
     }
 
-    // DADOS DO PET
+ // DADOS DO PET
 
-    string  public nome;            // nome do pet
-    string  public raca;            // raca do pet
-    address public dono;            // endereco do tutor/dono
-    uint256 public dataNascimento;  // timestamp do nascimento
-    address public pai;             // endereco do PetContract do pai (pedigree); address(0) se nao houver
-    address public mae;             // endereco do PetContract da mae (pedigree); address(0) se nao houver
-    bool    public falecido;        // true apos markAsDeceased; encerra o historico
-
-    Memorial public memorial;       // dados do memorial (preenchido no falecimento)
+/// @notice Nome do pet
+string  public nome;
+/// @notice Raca do pet
+string  public raca;
+/// @notice Endereco do tutor/dono
+address public dono;
+/// @notice Timestamp do nascimento
+uint256 public dataNascimento;
+/// @notice Endereco do PetContract do pai (address(0) se nao houver pedigree)
+address public pai;
+/// @notice Endereco do PetContract da mae (address(0) se nao houver pedigree)
+address public mae;
+/// @notice Indica se o pet faleceu; quando true, o historico fica encerrado
+bool    public falecido;
+/// @notice Dados do memorial, preenchidos no falecimento
+Memorial public memorial;
 
     // HISTORICO
 
