@@ -13,8 +13,8 @@ import "@openzeppelin/contracts/access/Ownable.sol";
 ///      (via reactivateVet) pelo owner ou admin, mantendo a mesma carteira e o mesmo NFT.
 contract VetNFT is ERC721, Ownable {
 
-    // ENUMS
-
+    // ENUMS 
+/// @notice Estados possiveis de uma credencial de veterinario
     enum StatusCredencial {
         INEXISTENTE,  // nunca solicitou
         PENDENTE,     // solicitou, aguarda aprovacao
@@ -60,6 +60,9 @@ contract VetNFT is ERC721, Ownable {
 
     // CONSTRUCTOR
 
+/// @notice Inicializa o NFT (nome e simbolo) e define o deployer como owner e admin
+/// @dev Herda de ERC721 (funcionalidade de NFT) e Ownable (controle de dono),
+///      passando os argumentos para os construtores desses contratos.
     constructor()
         ERC721("PetgreeChain Vet", "PGVET")
         Ownable(msg.sender)
