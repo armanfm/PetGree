@@ -66,16 +66,14 @@ bool    public falecido;
 /// @notice Dados do memorial, preenchidos no falecimento
 Memorial public memorial;
 
-    // HISTORICO
+// HISTORICO
 
-    Consulta[] public consultas;    // historico de consultas
-    Atestado[] public atestados;    // historico de atestados
+/// @notice Historico de consultas do pet
+Consulta[] public consultas;
+/// @notice Historico de atestados do pet
+Atestado[] public atestados;
 
-    uint256 private _consultaCounter; // contador incremental dos ids de consulta
-
-    // REFERENCIAS EXTERNAS
-
-    VetNFT public vetNFT;           // contrato de credenciais dos vets (valida quem e vet ativo)
+uint256 private _consultaCounter; // contador incremental dos ids de consulta
 
     // CHAINLINK
 
