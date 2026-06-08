@@ -10,7 +10,7 @@ import "@chainlink/contracts/src/v0.8/shared/interfaces/AggregatorV3Interface.so
 ///      Pagamento e presencial - o contrato registra apenas o prontuario.
 ///      Os feeds Chainlink sao usados apenas para converter precos (wei) em reais.
 contract PetContract {
-
+ VetNFT public vetNFT;
     // ENUMS
 
     /// @notice Tipos de atendimento que um vet pode registrar
