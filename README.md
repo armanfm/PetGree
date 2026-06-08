@@ -52,12 +52,18 @@ Status da credencial: `INEXISTENTE`, `PENDENTE`, `ATIVA`, `SUSPENSA`. Principais
 
 ## Contrato em testnet
 
-> Preencher com os dados confirmados do deploy. Um endereço EVM não indica a rede, então confirme em qual rede o deploy foi feito e qual endereço é cada contrato. No explorador, a PetFactory é a que emite eventos `PetRegistrado` e responde a `getAllPets`.
+Rede: Ethereum Sepolia.
 
-- Rede: `[CONFIRMAR, provavelmente Ethereum Sepolia]`
-- VetNFT: `[ENDEREÇO]`
-- PetFactory: `[ENDEREÇO]`
-- Explorador: `[LINK, ex.: https://sepolia.etherscan.io/address/...]`
+| Contrato | Endereço | Explorador |
+| --- | --- | --- |
+| PetFactory | `0xEaaa76A2740BC25a2718266B991Ab243fBBCF225` | [Sepolia Etherscan](https://sepolia.etherscan.io/address/0xEaaa76A2740BC25a2718266B991Ab243fBBCF225) |
+| VetNFT | `0x9b7F3470bdAAc538CEd040a367d70239770E0Ca5` | [Sepolia Etherscan](https://sepolia.etherscan.io/address/0x9b7F3470bdAAc538CEd040a367d70239770E0Ca5) |
+
+## Demonstração
+
+Aplicação publicada: https://petgreechain.vercel.app
+
+Para usar, conecte a MetaMask na Sepolia e informe os endereços do `PetFactory` e do `VetNFT` na aba Contratos. O vídeo-pitch apresenta o fluxo completo.
 
 ## Stack
 
@@ -69,13 +75,17 @@ Status da credencial: `INEXISTENTE`, `PENDENTE`, `ATIVA`, `SUSPENSA`. Principais
 - Supabase para a camada off-chain
 - Geoapify para a geocodificação do endereço da clínica
 
+## Integrações externas
+
+- Supabase: camada off-chain do sistema. Armazena o prontuário clínico (`pet_clinical_records`), os exames (`pet_exam_files`), as fotos do pet (`pet_photos`), os alertas de vacinação (`vaccine_alerts`) e a localização das clínicas (`vet_locations`). A URL e a chave publishable já vêm no frontend.
+- Geoapify: busca e autocomplete do endereço da clínica, pelo endpoint de geocodificação. A chave é informada pelo usuário no app e o uso é opcional.
+
 ## Estrutura do repositório
 
 ```
 /contracts   PetFactory.sol, PetContract.sol, VetNFT.sol
 /frontend    index.html, aplicação estática que conecta via MetaMask
-/scripts     scripts de apoio
-/test        testes
+/scripts     PetgreeChain.t.sol, suíte de testes em Foundry
 /docs        documentação
 ```
 
@@ -100,7 +110,43 @@ O frontend já traz a URL e a chave publishable do Supabase embutidas, então a 
 
 ## Testes e Segurança
 
-[a preencher]
+A validação funcional conta com 20 testes automatizados em Foundry, todos passando, em `scripts/PetgreeChain.t.sol`. Os testes cobrem os principais fluxos e regras de negócio:
+
+- Deploy dos contratos e definição do administrador
+- Credenciamento, aprovação e controle de acesso de veterinários
+- Credencial soulbound, não transferível
+- Suspensão e reativação de veterinários
+- Registro de pets e validação de pedigree, válido e inválido
+- Abertura de consultas, com acesso restrito ao dono
+- Internação com exigência de diárias
+- Fluxo de vacinação e regra de finalização
+- Emissão de atestados
+- Memorial, com exigência de vacinação registrada
+- Bloqueio de novas consultas após o óbito do pet
+- Conversão de preços para reais via Chainlink
+
+A segurança dos contratos foi verificada com duas ferramentas, executadas nos três contratos principais, `VetNFT`, `PetContract` e `PetFactory`.
+
+### Slither, análise estática
+
+Nenhuma vulnerabilidade crítica foi identificada. Os apontamentos são de baixa severidade ou informativos:
+
+- Otimizações de gas, como uso de `immutable` em variáveis definidas apenas no construtor e cache do tamanho de arrays em loops
+- Uso de `block.timestamp` em comparações, sem impacto relevante no contexto da aplicação
+- Retorno do feed Chainlink parcialmente ignorado de forma intencional, já que apenas o preço é utilizado
+- Ausência de verificação de endereço zero no construtor, considerando que os valores são controlados pela factory
+
+As bibliotecas de terceiros, como a OpenZeppelin, foram filtradas da análise. Nenhum apontamento representa risco explorável no contexto do projeto.
+
+### Mythril, execução simbólica
+
+Executado nos três contratos, com o mesmo resultado em todos: "The analysis was completed successfully. No issues were detected."
+
+- VetNFT: nenhum problema detectado
+- PetContract: nenhum problema detectado
+- PetFactory: nenhum problema detectado
+
+Em resumo, o projeto foi validado por testes automatizados em Foundry, análise estática com Slither e execução simbólica com Mythril, sem falhas críticas ou problemas exploráveis nos contratos analisados.
 
 ## Requisitos do ProofChain atendidos
 
@@ -121,8 +167,8 @@ A autoria intelectual, as decisões de arquitetura e a implementação da soluç
 
 ## Equipe
 
-- Armando José Freire de Melo, analista de sistemas e arquiteto blockchain.
 - Izabela Fernandes Santos, advogada de direito internacional e web3.
+- Armando José Freire de Melo, analista de sistemas e arquiteto blockchain.
 
 ## Licença
 
