@@ -121,8 +121,8 @@ A autoria intelectual, as decisões de arquitetura e a implementação da soluç
 
 ## Equipe
 
-- Izabela Fernandes Santos, advogada de direito internacional e web3.
 - Armando José Freire de Melo, analista de sistemas e arquiteto blockchain.
+- Izabela Fernandes Santos, advogada de direito internacional e web3.
 
 ## Licença
 
