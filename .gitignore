@@ -1,4 +1,20 @@
-# Compiler files
+cache/
+out/
+broadcast/
+mythril-env/
+node_modules/
+*.log
+*.tmp
+.DS_Store
+Thumbs.dbcache/
+out/
+broadcast/
+mythril-env/
+node_modules/
+*.log
+*.tmp
+.DS_Store
+Thumbs.db# Compiler files
 cache/
 out/
 

@@ -1,0 +1,11 @@
+
+{
+  "remappings": [
+    "@openzeppelin/contracts/=lib/openzeppelin-contracts/contracts/",
+    "@chainlink/contracts/=lib/chainlink-brownie-contracts/contracts/"
+  ],
+  "optimizer": {
+    "enabled": true,
+    "runs": 200
+  }
+}
