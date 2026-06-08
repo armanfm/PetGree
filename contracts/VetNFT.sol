@@ -302,7 +302,7 @@ event AdminRemovido(address indexed admin, address indexed removidoPor);
     /// @dev Exige que o vet possua NFT e esteja com status SUSPENSA.
     ///      Devolve o status para ATIVA sem mintar novo token (reaproveita o NFT existente).
     /// @param vetAddress endereco do vet a ser reativado
-    function reactivateVet(address vetAddress) external onlyOwnerOrAdmin {
+    
     function reactivateVet(address vetAddress) external onlyOwnerOrAdmin {
         require(hasNFT[vetAddress], "Vet inexistente");
         require(
